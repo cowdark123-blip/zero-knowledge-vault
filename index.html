@@ -1114,9 +1114,9 @@
       }
     });
 
-    // AUTO PUSH TO SUPABASE CLOUD
+    // AUTO PUSH TO SUPABASE CLOUD (HỖ TRỢ LƯU VÀ ĐỒNG BỘ ĐẦY ĐỦ VÀO DATABASE)
     async function autoPushToCloud() {
-      if (!supabaseClient || !currentUser || !currentKey || !currentSaltBase64) return;
+      if (!supabaseClient || !currentUser) return;
       const payloadStr = localStorage.getItem(STORAGE_KEY);
       if (!payloadStr) return;
 
@@ -1132,10 +1132,13 @@
 
         if (error) {
           console.warn("Auto push error:", error);
+          showToast("⚠️ Không thể lưu lên Database Supabase: " + error.message, "danger");
         } else {
-          showToast("⚡ Đã tự động đồng bộ kho lên Supabase Cloud!", "success");
+          showToast("⚡ Đã tự động lưu kho mã hóa lên Supabase Database!", "success");
         }
-      } catch(e) {}
+      } catch(e) {
+        console.warn("Auto push catch error:", e);
+      }
     }
 
     // AUTO PULL FROM SUPABASE CLOUD
@@ -1147,10 +1150,11 @@
           .from('vaults')
           .select('*')
           .eq('user_id', currentUser.id)
-          .single();
+          .maybeSingle();
+
+        const currentLocal = localStorage.getItem(STORAGE_KEY);
 
         if (data && data.ciphertext) {
-          const currentLocal = localStorage.getItem(STORAGE_KEY);
           const newPayload = JSON.stringify({
             salt: data.salt,
             iv: data.iv,
@@ -1160,10 +1164,15 @@
           if (currentLocal !== newPayload) {
             localStorage.setItem(STORAGE_KEY, newPayload);
             initAppUI();
-            showToast("📥 Đã tự động tải kho mã hóa mới nhất từ Cloud!", "info");
+            showToast("📥 Đã tự động tải kho mã hóa mới nhất từ Supabase Database!", "info");
           }
+        } else if (!data && currentLocal) {
+          // Trường hợp Cloud chưa có dữ liệu cho user này: Tự động đẩy kho mã hóa hiện tại lên Database!
+          await autoPushToCloud();
         }
-      } catch(e) {}
+      } catch(e) {
+        console.warn("Auto pull catch error:", e);
+      }
     }
 
     // TOAST UTILITY
@@ -1246,7 +1255,7 @@
       }
     });
 
-    // SAVE ENCRYPTED VAULT TO LOCAL STORAGE & CLOUD
+    // SAVE ENCRYPTED VAULT TO LOCAL STORAGE & SUPABASE CLOUD DATABASE
     async function saveVaultToStorage() {
       if (!currentKey || !currentSaltBase64) return;
 
@@ -1267,8 +1276,12 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       updateTrashBadge();
 
-      // Trigger Auto Push to Cloud if logged in
-      await autoPushToCloud();
+      // Trigger Auto Push to Cloud Database if user is logged in
+      if (currentUser) {
+        await autoPushToCloud();
+      } else {
+        showToast("💾 Đã lưu kho vào trình duyệt! (Hãy bấm Đăng nhập Google/GitHub để lưu lên Supabase Database)", "info");
+      }
     }
 
     // LOCK VAULT FUNCTION
