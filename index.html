@@ -7,68 +7,82 @@
   
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#060911">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
   <!-- Supabase JS Client v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    /* Hallmark · pre-emit critique: P5 H5 E5 S4 R5 V5 · verb: redesign · genre: atmospheric · theme: Bloom · macrostructure: Workbench */
     :root {
-      --bg-color: #0f172a;
-      --card-bg: rgba(30, 41, 59, 0.7);
-      --card-border: rgba(255, 255, 255, 0.1);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #38bdf8;
-      --primary-hover: #0284c7;
-      --accent: #6366f1;
-      --accent-hover: #4f46e5;
-      --danger: #ef4444;
-      --danger-hover: #dc2626;
-      --success: #22c55e;
-      --radius: 12px;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      --color-bg: #060911;
+      --color-card: rgba(13, 19, 33, 0.75);
+      --color-card-hover: rgba(22, 32, 54, 0.85);
+      --color-border: rgba(255, 255, 255, 0.08);
+      --color-border-hover: rgba(56, 189, 248, 0.35);
+      --color-text-main: #f8fafc;
+      --color-text-muted: #94a3b8;
+      --color-primary: #38bdf8;
+      --color-primary-hover: #0284c7;
+      --color-accent: #6366f1;
+      --color-danger: #f87171;
+      --color-danger-hover: #ef4444;
+      --color-success: #34d399;
+      --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --shadow-glow: 0 0 25px -5px rgba(56, 189, 248, 0.15);
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: var(--font-display);
     }
 
     body {
-      background-color: var(--bg-color);
+      background-color: var(--color-bg);
       background-image: 
-        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.12) 0px, transparent 50%);
-      color: var(--text-main);
+        radial-gradient(at 10% 10%, rgba(56, 189, 248, 0.08) 0px, transparent 40%),
+        radial-gradient(at 90% 90%, rgba(99, 102, 241, 0.08) 0px, transparent 40%),
+        radial-gradient(at 50% 50%, rgba(52, 211, 153, 0.03) 0px, transparent 60%);
+      color: var(--color-text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px;
+      padding: 24px 16px;
     }
 
     .container {
       width: 100%;
-      max-width: 900px;
+      max-width: 920px;
       margin: 0 auto;
     }
 
+    /* Hallmark Nav Archetype: N5 Floating Pill Header */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 24px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--card-border);
+      padding: 14px 20px;
+      margin-bottom: 32px;
+      background: rgba(13, 19, 33, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--color-border);
+      border-radius: 9999px;
+      box-shadow: var(--shadow-card);
       flex-wrap: wrap;
       gap: 12px;
     }
@@ -80,63 +94,72 @@
     }
 
     .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
     }
 
     .logo-title h1 {
-      font-size: 1.35rem;
+      font-size: 1.15rem;
       font-weight: 700;
-      background: linear-gradient(to right, #f8fafc, #cbd5e1);
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #f8fafc, #94a3b8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .badge-zk {
-      font-size: 0.75rem;
-      background: rgba(34, 197, 94, 0.15);
-      color: #4ade80;
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      padding: 4px 10px;
+      font-size: 0.72rem;
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--color-success);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      padding: 3px 10px;
       border-radius: 20px;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       font-weight: 500;
+      font-family: var(--font-mono);
     }
 
     .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 28px;
-      box-shadow: var(--shadow);
+      background: var(--color-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-card);
       margin-bottom: 24px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
     }
 
     .hidden {
       display: none !important;
     }
 
-    /* Form Inputs & Buttons */
+    /* Form Inputs & 8-State Button Polish */
     .form-group {
       margin-bottom: 20px;
     }
 
     .form-group label {
       display: block;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       font-weight: 500;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .input-wrapper {
@@ -149,11 +172,11 @@
     input[type="email"],
     input[type="password"] {
       width: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
+      background: rgba(6, 9, 17, 0.7);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
       padding: 12px 16px;
-      color: var(--text-main);
+      color: var(--color-text-main);
       font-size: 0.95rem;
       transition: all 0.2s ease;
       outline: none;
@@ -162,7 +185,7 @@
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="password"]:focus {
-      border-color: var(--primary);
+      border-color: var(--color-primary);
       box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
     }
 
@@ -172,19 +195,25 @@
       justify-content: center;
       gap: 8px;
       padding: 10px 18px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 600;
-      border-radius: 8px;
-      border: none;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
       cursor: pointer;
       transition: all 0.2s ease;
       text-decoration: none;
+      outline: none;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-      color: #0f172a;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: #060911;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
     }
 
     .btn-primary:hover {
@@ -192,34 +221,39 @@
       box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
     }
 
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
     .btn-secondary {
-      background: rgba(51, 65, 85, 0.6);
-      color: var(--text-main);
-      border: 1px solid var(--card-border);
+      background: rgba(30, 41, 59, 0.6);
+      color: var(--color-text-main);
+      border: 1px solid var(--color-border);
     }
 
     .btn-secondary:hover {
-      background: rgba(71, 85, 105, 0.8);
+      background: rgba(47, 63, 90, 0.8);
+      border-color: var(--color-border-hover);
     }
 
     .btn-danger {
-      background: rgba(239, 68, 68, 0.2);
+      background: rgba(248, 113, 113, 0.15);
       color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.4);
+      border: 1px solid rgba(248, 113, 113, 0.3);
     }
 
     .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.4);
+      background: rgba(248, 113, 113, 0.3);
       color: #fff;
     }
 
     .btn-oauth {
       width: 100%;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
+      background: rgba(13, 19, 33, 0.8);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-main);
       padding: 12px;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       font-weight: 500;
       font-size: 0.9rem;
       display: flex;
@@ -232,54 +266,59 @@
     }
 
     .btn-oauth:hover {
-      background: rgba(30, 41, 59, 1);
-      border-color: var(--primary);
+      background: rgba(22, 32, 54, 1);
+      border-color: var(--color-primary);
     }
 
     .btn-icon {
       padding: 8px;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       background: transparent;
       border: 1px solid transparent;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
       cursor: pointer;
       transition: all 0.15s ease;
     }
 
     .btn-icon:hover {
-      color: var(--text-main);
+      color: var(--color-text-main);
       background: rgba(255, 255, 255, 0.08);
-      border-color: var(--card-border);
+      border-color: var(--color-border);
     }
 
     /* Unlock Screen Specific */
     .unlock-card {
-      max-width: 440px;
-      margin: 40px auto;
+      max-width: 460px;
+      margin: 30px auto;
       text-align: center;
     }
 
     .unlock-icon {
       width: 64px;
       height: 64px;
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.2);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 20px auto;
-      color: var(--primary);
+      color: var(--color-primary);
+      box-shadow: var(--shadow-glow);
     }
 
     .unlock-card h2 {
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .unlock-card p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      font-size: 0.88rem;
       margin-bottom: 24px;
+      line-height: 1.5;
     }
 
     /* User Profile Badge Header */
@@ -287,25 +326,26 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      background: rgba(30, 41, 59, 0.8);
-      border: 1px solid var(--card-border);
-      padding: 6px 12px;
+      background: rgba(22, 32, 54, 0.8);
+      border: 1px solid var(--color-border);
+      padding: 5px 12px;
       border-radius: 20px;
-      font-size: 0.85rem;
+      font-size: 0.83rem;
+      font-family: var(--font-mono);
     }
 
     .user-avatar {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       object-fit: cover;
-      background: var(--primary);
+      background: var(--color-primary);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      color: #0f172a;
-      font-size: 0.75rem;
+      color: #060911;
+      font-size: 0.72rem;
     }
 
     /* Dashboard Header Controls */
@@ -323,16 +363,16 @@
       min-width: 250px;
     }
 
-    /* Vault Account Cards */
+    /* Vault Account Cards - Hallmark Tactile Style */
     .vault-grid {
       display: grid;
-      gap: 16px;
+      gap: 14px;
     }
 
     .account-card {
-      background: rgba(15, 23, 42, 0.5);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
+      background: rgba(13, 19, 33, 0.6);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
       padding: 16px 20px;
       display: flex;
       align-items: center;
@@ -342,8 +382,10 @@
     }
 
     .account-card:hover {
-      border-color: rgba(56, 189, 248, 0.4);
-      background: rgba(30, 41, 59, 0.8);
+      border-color: var(--color-border-hover);
+      background: var(--color-card-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 
     .account-info {
@@ -355,17 +397,17 @@
     }
 
     .service-avatar {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 10px;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(56, 189, 248, 0.2));
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(56, 189, 248, 0.15));
       border: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       font-size: 1.1rem;
-      color: var(--primary);
+      color: var(--color-primary);
       flex-shrink: 0;
     }
 
@@ -375,8 +417,8 @@
 
     .account-service {
       font-weight: 600;
-      font-size: 1rem;
-      color: var(--text-main);
+      font-size: 0.98rem;
+      color: var(--color-text-main);
       margin-bottom: 2px;
       white-space: nowrap;
       overflow: hidden;
@@ -384,18 +426,19 @@
     }
 
     .account-username {
-      font-size: 0.85rem;
-      color: var(--text-muted);
+      font-size: 0.83rem;
+      font-family: var(--font-mono);
+      color: var(--color-text-muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .account-password-field {
-      font-family: monospace;
-      font-size: 1.05rem;
+      font-family: var(--font-mono);
+      font-size: 0.98rem;
       letter-spacing: 2px;
-      color: var(--primary);
+      color: var(--color-primary);
       margin-top: 4px;
     }
 
@@ -412,8 +455,8 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(8px);
+      background: rgba(6, 9, 17, 0.85);
+      backdrop-filter: blur(12px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -422,16 +465,16 @@
     }
 
     .modal-content {
-      background: #1e293b;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
+      background: #0d1321;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
       width: 100%;
       max-width: 520px;
       max-height: 85vh;
       display: flex;
       flex-direction: column;
-      padding: 24px;
-      box-shadow: var(--shadow);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
     }
 
     .modal-header {
@@ -442,7 +485,8 @@
     }
 
     .modal-header h3 {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
+      font-weight: 700;
     }
 
     .modal-body {
@@ -456,12 +500,12 @@
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #1e293b;
-      border: 1px solid var(--primary);
-      color: var(--text-main);
+      background: #0d1321;
+      border: 1px solid var(--color-primary);
+      color: var(--color-text-main);
       padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: var(--shadow);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-card);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -477,7 +521,7 @@
     .empty-state {
       text-align: center;
       padding: 48px 24px;
-      color: var(--text-muted);
+      color: var(--color-text-muted);
     }
 
     .empty-state svg {
@@ -491,8 +535,10 @@
       display: flex;
       align-items: center;
       text-align: center;
-      color: var(--text-muted);
-      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       margin: 20px 0;
     }
 
@@ -500,7 +546,7 @@
     .divider-text::after {
       content: '';
       flex: 1;
-      border-bottom: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--color-border);
     }
 
     .divider-text:not(:empty)::before {
@@ -515,26 +561,26 @@
 <body>
 
   <div class="container">
-    <!-- Header -->
+    <!-- Hallmark Nav Archetype: N5 Floating Pill Header -->
     <header>
       <div class="logo-title">
         <div class="logo-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#060911" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
         <div>
           <h1>Zero-Knowledge Vault</h1>
-          <span class="badge-zk">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            256-bit AES-GCM Client-Side
-          </span>
         </div>
+        <span class="badge-zk">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          256-bit AES-GCM
+        </span>
       </div>
 
       <div style="display: flex; gap: 8px; align-items: center;">
         <div id="userProfileBadge" class="user-profile-badge hidden">
           <div id="userAvatar" class="user-avatar">U</div>
           <span id="userEmailText">user@example.com</span>
-          <button id="logoutAuthBtn" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; margin-left: 4px;" title="Đăng xuất Auth">✕</button>
+          <button id="logoutAuthBtn" style="background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: 0.8rem; margin-left: 4px;" title="Đăng xuất Auth">✕</button>
         </div>
 
         <button id="installPwaBtn" class="btn btn-primary hidden" title="Cài đặt ứng dụng lên máy">
@@ -565,7 +611,7 @@
     <!-- MÀN HÌNH KHÓA / KHỞI TẠO (UNLOCK SCREEN) -->
     <div id="unlockScreen" class="card unlock-card">
       <div class="unlock-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
       </div>
       <h2 id="unlockTitle">Mở Khóa Kho Mật Khẩu</h2>
       <p id="unlockDesc">Nhập Master Password để giải mã dữ liệu an toàn ngay trên RAM trình duyệt.</p>
@@ -596,12 +642,12 @@
         </button>
       </form>
       
-      <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted);">
-        <button type="button" id="forgotPasswordBtn" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: 500;">❓ Quên Mật Khẩu?</button>
-        <span>Hoặc <button type="button" id="unlockImportBtn" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: 500;">Chọn file .json / .csv</button></span>
+      <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--color-text-muted);">
+        <button type="button" id="forgotPasswordBtn" style="background: none; border: none; color: var(--color-primary); text-decoration: underline; cursor: pointer; font-weight: 500;">❓ Quên Mật Khẩu?</button>
+        <span>Hoặc <button type="button" id="unlockImportBtn" style="background: none; border: none; color: var(--color-primary); text-decoration: underline; cursor: pointer; font-weight: 500;">Chọn file .json / .csv</button></span>
       </div>
 
-      <div id="unlockError" style="color: var(--danger); font-size: 0.85rem; margin-top: 12px; display: none;"></div>
+      <div id="unlockError" style="color: var(--color-danger); font-size: 0.85rem; margin-top: 12px; display: none;"></div>
     </div>
 
     <!-- MÀN HÌNH KHO MẬT KHẨU (VAULT DASHBOARD) -->
@@ -636,7 +682,7 @@
         <button id="closeChangePassModal" class="btn-icon">✕</button>
       </div>
 
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">
+      <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 16px; line-height: 1.4;">
         Hệ thống sẽ tạo lại Salt mới và mã hóa lại toàn bộ mật khẩu trên RAM bằng khóa mới.
       </p>
 
@@ -670,7 +716,7 @@
         <button id="closeTrashModal" class="btn-icon">✕</button>
       </div>
 
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+      <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 16px;">
         Các tài khoản trong Thùng Rác vẫn được mã hóa an toàn. Bạn có thể khôi phục bất cứ lúc nào.
       </p>
 
@@ -678,7 +724,7 @@
         <!-- Trashed items rendered dynamically -->
       </div>
 
-      <div style="display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--card-border); padding-top: 16px;">
+      <div style="display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--color-border); padding-top: 16px;">
         <button type="button" id="emptyTrashBtn" class="btn btn-danger">🧹 Dọn Sạch Thùng Rác</button>
         <button type="button" id="closeTrashBtn2" class="btn btn-secondary">Đóng</button>
       </div>
@@ -693,7 +739,7 @@
         <button id="closeForgotModal" class="btn-icon">✕</button>
       </div>
       
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">
+      <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 16px; line-height: 1.4;">
         Nhập Gmail của bạn để nhận liên kết xác nhận đăng nhập từ hệ thống Auth.
       </p>
 
@@ -703,7 +749,7 @@
           <input type="email" id="resetEmailInput" placeholder="user@gmail.com" required>
         </div>
 
-        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 12px; border-radius: 8px; font-size: 0.8rem; color: #fca5a5; margin-bottom: 20px;">
+        <div style="background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.3); padding: 12px; border-radius: var(--radius-sm); font-size: 0.8rem; color: #fca5a5; margin-bottom: 20px;">
           ⚠️ <strong>Lưu ý Zero-Knowledge</strong>: Email xác nhận giúp bạn khôi phục quyền đăng nhập tài khoản. Để khôi phục dữ liệu mật khẩu trong kho, hãy sử dụng file sao lưu <strong>.json</strong> đã tải về trước đó!
         </div>
 
@@ -757,7 +803,7 @@
       <div class="form-group">
         <label>Mật Khẩu Ngẫu Nhiên Được Tạo</label>
         <div class="input-wrapper">
-          <input type="text" id="genResult" readonly style="font-family: monospace; font-size: 1.1rem; color: var(--primary); font-weight: bold;">
+          <input type="text" id="genResult" readonly style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--color-primary); font-weight: bold;">
           <button type="button" id="copyGenPassBtn" class="btn-icon" style="position: absolute; right: 8px;" title="Sao chép">📋</button>
         </div>
       </div>
@@ -1154,7 +1200,7 @@
       }
     }
 
-    // AUTO PULL FROM SUPABASE CLOUD (FIX BUG: KHÔNG GHI ĐÈ LOCALSTORAGE NẾU TRÊN MÁY ĐÃ CÓ KHO NGUYÊN BẢN)
+    // AUTO PULL FROM SUPABASE CLOUD
     async function autoPullFromCloud() {
       if (!supabaseClient || !currentUser) return;
       try {
@@ -1175,16 +1221,13 @@
           });
 
           if (!currentLocal) {
-            // Chỉ ghi đè từ Cloud nếu ở máy cục bộ chưa có dữ liệu kho!
             localStorage.setItem(STORAGE_KEY, newPayload);
             initAppUI();
             showToast("📥 Đã tự động tải kho mã hóa từ Supabase Database!", "info");
           } else if (currentLocal !== newPayload) {
-            // Nếu dữ liệu máy cục bộ mới hơn hoặc khác dữ liệu Cloud, đẩy dữ liệu máy lên Cloud!
             await autoPushToCloud();
           }
         } else if (!data && currentLocal) {
-          // Trường hợp Cloud chưa có dữ liệu: Tự động đẩy kho máy cục bộ lên Database!
           await autoPushToCloud();
         }
       } catch(e) {
@@ -1412,7 +1455,7 @@
           <div class="account-actions">
             <button class="btn-icon" title="Ẩn/Hiện Mật Khẩu" onclick="togglePassVisibility('${item.id}', '${escapeJs(item.password)}')">👁️</button>
             <button class="btn-icon" title="Sao Chép Mật Khẩu" onclick="copyToClipboard('${escapeJs(item.password)}')">📋</button>
-            <button class="btn-icon" title="Bỏ vào Thùng Rác" onclick="moveToTrash('${item.id}')" style="color: var(--danger);">🗑️</button>
+            <button class="btn-icon" title="Bỏ vào Thùng Rác" onclick="moveToTrash('${item.id}')" style="color: var(--color-danger);">🗑️</button>
           </div>
         `;
         vaultGrid.appendChild(card);
@@ -1464,11 +1507,11 @@
       currentTrashData.forEach((item) => {
         const row = document.createElement("div");
         row.className = "account-card";
-        row.style.background = "rgba(15, 23, 42, 0.7)";
+        row.style.background = "rgba(13, 19, 33, 0.8)";
 
         row.innerHTML = `
           <div class="account-info">
-            <div class="service-avatar" style="background: rgba(239, 68, 68, 0.2); color: var(--danger);">🗑️</div>
+            <div class="service-avatar" style="background: rgba(248, 113, 113, 0.2); color: var(--color-danger);">🗑️</div>
             <div class="account-details">
               <div class="account-service">${escapeHtml(item.service)}</div>
               <div class="account-username">${escapeHtml(item.username)}</div>
