@@ -15,6 +15,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
+  <!-- Supabase JS Client v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
       --bg-color: #0f172a;
@@ -197,6 +200,29 @@
       background: rgba(71, 85, 105, 0.8);
     }
 
+    .btn-oauth {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
+    }
+
+    .btn-oauth:hover {
+      background: rgba(30, 41, 59, 1);
+      border-color: var(--primary);
+    }
+
     .btn-icon {
       padding: 8px;
       border-radius: 6px;
@@ -241,6 +267,32 @@
       color: var(--text-muted);
       font-size: 0.9rem;
       margin-bottom: 24px;
+    }
+
+    /* User Profile Badge Header */
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #0f172a;
+      font-size: 0.75rem;
     }
 
     /* Dashboard Header Controls */
@@ -412,6 +464,30 @@
       margin-bottom: 12px;
       opacity: 0.5;
     }
+
+    .divider-text {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin: 20px 0;
+    }
+
+    .divider-text::before,
+    .divider-text::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .divider-text:not(:empty)::before {
+      margin-right: .75em;
+    }
+
+    .divider-text:not(:empty)::after {
+      margin-left: .75em;
+    }
   </style>
 </head>
 <body>
@@ -433,14 +509,21 @@
       </div>
 
       <div style="display: flex; gap: 8px; align-items: center;">
+        <div id="userProfileBadge" class="user-profile-badge hidden">
+          <div id="userAvatar" class="user-avatar">U</div>
+          <span id="userEmailText">user@example.com</span>
+          <button id="logoutAuthBtn" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; margin-left: 4px;" title="Đăng xuất Auth">✕</button>
+        </div>
+
         <button id="installPwaBtn" class="btn btn-primary hidden" title="Cài đặt ứng dụng lên máy">
           📲 Cài Đặt App
         </button>
 
+        <button id="cloudSyncModalBtn" class="btn btn-secondary" title="Đồng bộ Cloud (Supabase)">
+          ⚙️ Cấu Hình Cloud
+        </button>
+
         <div id="headerActions" class="hidden" style="display: flex; gap: 8px;">
-          <button id="cloudSyncModalBtn" class="btn btn-secondary" title="Đồng bộ Cloud (Supabase)">
-            ☁️ Cloud Sync
-          </button>
           <button id="exportBackupBtn" class="btn btn-secondary" title="Xuất bản sao lưu dữ liệu đã mã hóa">
             💾 Export
           </button>
@@ -462,6 +545,21 @@
       </div>
       <h2 id="unlockTitle">Mở Khóa Kho Mật Khẩu</h2>
       <p id="unlockDesc">Nhập Master Password để giải mã dữ liệu an toàn ngay trên RAM trình duyệt.</p>
+
+      <!-- OAuth Login Options -->
+      <div id="oauthContainer">
+        <button id="googleLoginBtn" type="button" class="btn-oauth">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          Đăng nhập bằng Google
+        </button>
+
+        <button id="githubLoginBtn" type="button" class="btn-oauth">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          Đăng nhập bằng GitHub
+        </button>
+
+        <div class="divider-text">hoặc mở khóa ngay</div>
+      </div>
 
       <form id="unlockForm">
         <div class="form-group">
@@ -510,7 +608,7 @@
   <div id="cloudModal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>☁️ Cấu Hình Đồng Bộ Cloud (Supabase)</h3>
+        <h3>⚙️ Cấu Hình Supabase Cloud & OAuth</h3>
         <button id="closeCloudModal" class="btn-icon">✕</button>
       </div>
       
@@ -528,13 +626,13 @@
           <input type="text" id="supabaseAnonKey" placeholder="eyJh...">
         </div>
         <div class="form-group">
-          <label for="syncUserId">Mã Định Danh Đồng Bộ (Sync User ID / Email)</label>
+          <label for="syncUserId">Mã Định Danh Đồng Bộ Lẻ (KHI KHÔNG DÙNG OAUTH)</label>
           <input type="text" id="syncUserId" placeholder="my-vault-id-123">
         </div>
 
         <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;">
           <button type="button" id="pullCloudBtn" class="btn btn-secondary">⏬ Tải Về Từ Cloud</button>
-          <button type="submit" class="btn btn-primary">🔄 Đẩy Lên Cloud Sync</button>
+          <button type="submit" class="btn btn-primary">💾 Lưu Cấu Hình</button>
         </div>
       </form>
     </div>
@@ -606,7 +704,7 @@
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer"></div>
 
-  <!-- CRYPTO ENGINE SCRIPT -->
+  <!-- CRYPTO ENGINE & SUPABASE SCRIPT -->
   <script>
     class CryptoService {
       static PBKDF2_ITERATIONS = 600000;
@@ -708,6 +806,10 @@
     let currentSaltBase64 = null;
     const STORAGE_KEY = "zk_vault_encrypted_payload";
 
+    // SUPABASE STATE
+    let supabaseClient = null;
+    let currentUser = null;
+
     // TIMERS & SECURITY CONTROLS
     let autoLockTimer = null;
     let clipboardTimer = null;
@@ -746,7 +848,7 @@
     const unlockImportBtn = document.getElementById("unlockImportBtn");
     const importFileInput = document.getElementById("importFileInput");
 
-    // CLOUD SYNC DOM
+    // CLOUD SYNC & AUTH DOM
     const cloudSyncModalBtn = document.getElementById("cloudSyncModalBtn");
     const cloudModal = document.getElementById("cloudModal");
     const closeCloudModal = document.getElementById("closeCloudModal");
@@ -755,6 +857,12 @@
     const supabaseAnonKeyInput = document.getElementById("supabaseAnonKey");
     const syncUserIdInput = document.getElementById("syncUserId");
     const pullCloudBtn = document.getElementById("pullCloudBtn");
+    const googleLoginBtn = document.getElementById("googleLoginBtn");
+    const githubLoginBtn = document.getElementById("githubLoginBtn");
+    const userProfileBadge = document.getElementById("userProfileBadge");
+    const userAvatar = document.getElementById("userAvatar");
+    const userEmailText = document.getElementById("userEmailText");
+    const logoutAuthBtn = document.getElementById("logoutAuthBtn");
 
     // APP INIT
     function initApp() {
@@ -769,14 +877,139 @@
         unlockSubmitBtn.textContent = "Mở Khóa Kho Dữ Liệu";
       }
 
-      // Restore Cloud Settings if saved
-      const savedCloudConfig = localStorage.getItem("zk_cloud_config");
-      if (savedCloudConfig) {
-        const cfg = JSON.parse(savedCloudConfig);
-        supabaseUrlInput.value = cfg.url || "";
-        supabaseAnonKeyInput.value = cfg.key || "";
-        syncUserIdInput.value = cfg.userId || "";
+      initSupabase();
+    }
+
+    // SUPABASE CLIENT INIT & AUTH LISTENERS
+    function initSupabase() {
+      const savedCfg = localStorage.getItem("zk_cloud_config");
+      if (savedCfg) {
+        try {
+          const cfg = JSON.parse(savedCfg);
+          supabaseUrlInput.value = cfg.url || "";
+          supabaseAnonKeyInput.value = cfg.key || "";
+          syncUserIdInput.value = cfg.userId || "";
+
+          if (cfg.url && cfg.key && window.supabase) {
+            supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
+            listenSupabaseAuth();
+          }
+        } catch(e) {}
       }
+    }
+
+    async function listenSupabaseAuth() {
+      if (!supabaseClient) return;
+
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          updateUserProfileUI();
+          autoPullFromCloud();
+        }
+
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+          if (session && session.user) {
+            currentUser = session.user;
+            updateUserProfileUI();
+            autoPullFromCloud();
+          } else {
+            currentUser = null;
+            updateUserProfileUI();
+          }
+        });
+      } catch(e) {}
+    }
+
+    function updateUserProfileUI() {
+      if (currentUser) {
+        userProfileBadge.classList.remove("hidden");
+        const email = currentUser.email || currentUser.user_metadata?.email || "Authenticated User";
+        userEmailText.textContent = email;
+
+        const avatarUrl = currentUser.user_metadata?.avatar_url;
+        if (avatarUrl) {
+          userAvatar.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;border-radius:50%;">`;
+        } else {
+          userAvatar.textContent = email.charAt(0).toUpperCase();
+        }
+      } else {
+        userProfileBadge.classList.add("hidden");
+      }
+    }
+
+    // OAUTH LOGIN & LOGOUT
+    googleLoginBtn.addEventListener("click", () => loginWithProvider("google"));
+    githubLoginBtn.addEventListener("click", () => loginWithProvider("github"));
+
+    async function loginWithProvider(provider) {
+      if (!supabaseClient) {
+        showToast("Vui lòng cấu hình Supabase URL & Anon Key trước!", "danger");
+        cloudModal.classList.remove("hidden");
+        return;
+      }
+      const redirectTo = window.location.origin + window.location.pathname;
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: provider,
+        options: { redirectTo }
+      });
+      if (error) showToast("Lỗi đăng nhập OAuth: " + error.message, "danger");
+    }
+
+    logoutAuthBtn.addEventListener("click", async () => {
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+        currentUser = null;
+        updateUserProfileUI();
+        showToast("Đã đăng xuất tài khoản OAuth!", "info");
+      }
+    });
+
+    // AUTO PUSH TO SUPABASE CLOUD
+    async function autoPushToCloud() {
+      if (!supabaseClient || !currentUser || !currentKey || !currentSaltBase64) return;
+      const payloadStr = localStorage.getItem(STORAGE_KEY);
+      if (!payloadStr) return;
+
+      const payload = JSON.parse(payloadStr);
+      try {
+        const { error } = await supabaseClient.from('vaults').upsert({
+          user_id: currentUser.id,
+          salt: payload.salt,
+          iv: payload.iv,
+          ciphertext: payload.ciphertext,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+        if (error) {
+          console.warn("Auto push error:", error);
+        } else {
+          showToast("⚡ Đã tự động đồng bộ kho lên Supabase Cloud!", "success");
+        }
+      } catch(e) {}
+    }
+
+    // AUTO PULL FROM SUPABASE CLOUD
+    async function autoPullFromCloud() {
+      if (!supabaseClient || !currentUser) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('vaults')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .single();
+
+        if (data && data.ciphertext) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            salt: data.salt,
+            iv: data.iv,
+            ciphertext: data.ciphertext
+          }));
+          initApp();
+          showToast("📥 Đã tự động tải kho mã hóa mới nhất từ Cloud!", "info");
+        }
+      } catch(e) {}
     }
 
     // TOAST UTILITY
@@ -849,7 +1082,7 @@
       }
     });
 
-    // SAVE ENCRYPTED VAULT TO LOCAL STORAGE
+    // SAVE ENCRYPTED VAULT TO LOCAL STORAGE & CLOUD
     async function saveVaultToStorage() {
       if (!currentKey || !currentSaltBase64) return;
       const dataJson = JSON.stringify(currentVaultData);
@@ -862,6 +1095,9 @@
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+      // Trigger Auto Push to Cloud if logged in
+      await autoPushToCloud();
     }
 
     // LOCK VAULT FUNCTION
@@ -1109,7 +1345,7 @@
       importFileInput.value = "";
     });
 
-    // CLOUD SYNC MODAL & SUPABASE REST INTEGRATION
+    // CLOUD SYNC CONFIG & MANUAL PUSH/PULL
     cloudSyncModalBtn.addEventListener("click", () => cloudModal.classList.remove("hidden"));
     closeCloudModal.addEventListener("click", () => cloudModal.classList.add("hidden"));
 
@@ -1119,56 +1355,30 @@
       const key = supabaseAnonKeyInput.value.trim();
       const userId = syncUserIdInput.value.trim();
 
-      if (!url || !key || !userId) {
-        showToast("Vui lòng điền đầy đủ URL, Anon Key và Mã định danh!", "danger");
+      if (!url || !key) {
+        showToast("Vui lòng điền đầy đủ URL và Anon Key!", "danger");
         return;
       }
 
       localStorage.setItem("zk_cloud_config", JSON.stringify({ url, key, userId }));
-
-      const payloadStr = localStorage.getItem(STORAGE_KEY);
-      if (!payloadStr) {
-        showToast("Chưa có kho mã hóa địa phương để đẩy lên Cloud!", "danger");
-        return;
-      }
-
-      try {
-        const payload = JSON.parse(payloadStr);
-        const res = await fetch(`${url}/rest/v1/vaults`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": key,
-            "Authorization": `Bearer ${key}`,
-            "Prefer": "resolution=merge-duplicates"
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            salt: payload.salt,
-            iv: payload.iv,
-            ciphertext: payload.ciphertext,
-            updated_at: new Date().toISOString()
-          })
-        });
-
-        if (res.ok || res.status === 201) {
-          showToast("Đã đồng bộ Encrypted Blob lên Cloud Supabase thành công!", "success");
-          cloudModal.classList.add("hidden");
-        } else {
-          showToast("Lỗi đồng bộ Cloud: Kiểm tra bảng 'vaults' trên Supabase", "danger");
-        }
-      } catch (err) {
-        showToast("Lỗi kết nối Supabase Cloud: " + err.message, "danger");
-      }
+      initSupabase();
+      showToast("Đã lưu cấu hình Supabase Cloud!", "success");
+      cloudModal.classList.add("hidden");
     });
 
     pullCloudBtn.addEventListener("click", async () => {
+      if (currentUser) {
+        await autoPullFromCloud();
+        cloudModal.classList.add("hidden");
+        return;
+      }
+
       const url = supabaseUrlInput.value.trim();
       const key = supabaseAnonKeyInput.value.trim();
       const userId = syncUserIdInput.value.trim();
 
       if (!url || !key || !userId) {
-        showToast("Vui lòng nhập cấu hình Supabase trước!", "danger");
+        showToast("Vui lòng nhập Sync ID hoặc Đăng nhập bằng Google/GitHub!", "danger");
         return;
       }
 
