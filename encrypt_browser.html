@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Encrypt Accounts Browser Script</title>
+</head>
+<body>
+  <h1>Encrypting Accounts...</h1>
+  <script>
+    async function runEncryption() {
+      const accountsJson = await fetch('./accounts_import.json').then(r => r.json());
+      const masterPass = "12345678";
+
+      // 1. Generate salt & iv
+      const salt = new Uint8Array(32);
+      crypto.getRandomValues(salt);
+      const iv = new Uint8Array(12);
+      crypto.getRandomValues(iv);
+
+      // 2. Derive PBKDF2 Key
+      const encoder = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(masterPass),
+        { name: "PBKDF2" },
+        false,
+        ["deriveKey"]
+      );
+
+      const key = await crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: salt,
+          iterations: 600000,
+          hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt"]
+      );
+
+      // 3. Encrypt AES-GCM
+      const dataStr = JSON.stringify(accountsJson);
+      const encryptedBuffer = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encoder.encode(dataStr)
+      );
+
+      // 4. Helpers
+      function bufferToBase64(buf) {
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+      }
+
+      const payload = {
+        salt: bufferToBase64(salt),
+        iv: bufferToBase64(iv),
+        ciphertext: bufferToBase64(encryptedBuffer),
+        exportedAt: new Date().toISOString(),
+        version: "1.0",
+        appName: "Zero-Knowledge Vault"
+      };
+
+      // POST result back to test server
+      await fetch('http://127.0.0.1:8889/save-encrypted-payload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      document.body.innerHTML = "<h2>Encryption Complete!</h2>";
+    }
+
+    runEncryption();
+  </script>
+</body>
+</html>

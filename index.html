@@ -146,6 +146,7 @@
     }
 
     input[type="text"],
+    input[type="email"],
     input[type="password"] {
       width: 100%;
       background: rgba(15, 23, 42, 0.6);
@@ -159,6 +160,7 @@
     }
 
     input[type="text"]:focus,
+    input[type="email"]:focus,
     input[type="password"]:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
@@ -519,10 +521,6 @@
           📲 Cài Đặt App
         </button>
 
-        <button id="cloudSyncModalBtn" class="btn btn-secondary" title="Đồng bộ Cloud (Supabase)">
-          ⚙️ Cấu Hình Cloud
-        </button>
-
         <div id="headerActions" class="hidden" style="display: flex; gap: 8px;">
           <button id="exportBackupBtn" class="btn btn-secondary" title="Xuất bản sao lưu dữ liệu đã mã hóa">
             💾 Export
@@ -533,7 +531,7 @@
           <button id="lockBtn" class="btn btn-secondary">
             🔒 Khóa Ngay
           </button>
-          <input type="file" id="importFileInput" accept=".json" class="hidden">
+          <input type="file" id="importFileInput" accept=".json,.csv" class="hidden">
         </div>
       </div>
     </header>
@@ -572,9 +570,9 @@
         </button>
       </form>
       
-      <div style="margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 16px;">
-        Hoặc khôi phục kho từ file sao lưu: 
-        <button type="button" id="unlockImportBtn" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: 500;">Chọn file .json</button>
+      <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted);">
+        <button type="button" id="forgotPasswordBtn" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: 500;">❓ Quên Mật Khẩu?</button>
+        <span>Hoặc <button type="button" id="unlockImportBtn" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: 500;">Chọn file .json / .csv</button></span>
       </div>
 
       <div id="unlockError" style="color: var(--danger); font-size: 0.85rem; margin-top: 12px; display: none;"></div>
@@ -604,35 +602,31 @@
     </div>
   </div>
 
-  <!-- MODAL CLOUD SYNC (SUPABASE) -->
-  <div id="cloudModal" class="modal-overlay hidden">
+  <!-- MODAL QUÊN MẬT KHẨU / XÁC NHẬN EMAIL -->
+  <div id="forgotPasswordModal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>⚙️ Cấu Hình Supabase Cloud & OAuth</h3>
-        <button id="closeCloudModal" class="btn-icon">✕</button>
+        <h3>📧 Khôi Phục / Xác Nhận Email</h3>
+        <button id="closeForgotModal" class="btn-icon">✕</button>
       </div>
       
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
-        Hệ thống chỉ đẩy Encrypted Blob (dữ liệu đã mã hóa) lên Cloud. Server Supabase hoàn toàn KHÔNG THỂ đọc được mật khẩu của bạn.
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">
+        Nhập Gmail của bạn để nhận liên kết xác nhận đăng nhập từ hệ thống Auth.
       </p>
 
-      <form id="cloudSyncForm">
+      <form id="forgotPasswordForm">
         <div class="form-group">
-          <label for="supabaseUrl">Supabase Project URL</label>
-          <input type="text" id="supabaseUrl" placeholder="https://xyz.supabase.co">
-        </div>
-        <div class="form-group">
-          <label for="supabaseAnonKey">Supabase Anon Key</label>
-          <input type="text" id="supabaseAnonKey" placeholder="eyJh...">
-        </div>
-        <div class="form-group">
-          <label for="syncUserId">Mã Định Danh Đồng Bộ Lẻ (KHI KHÔNG DÙNG OAUTH)</label>
-          <input type="text" id="syncUserId" placeholder="my-vault-id-123">
+          <label for="resetEmailInput">Địa Chỉ Gmail / Email</label>
+          <input type="email" id="resetEmailInput" placeholder="user@gmail.com" required>
         </div>
 
-        <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 24px;">
-          <button type="button" id="pullCloudBtn" class="btn btn-secondary">⏬ Tải Về Từ Cloud</button>
-          <button type="submit" class="btn btn-primary">💾 Lưu Cấu Hình</button>
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 12px; border-radius: 8px; font-size: 0.8rem; color: #fca5a5; margin-bottom: 20px;">
+          ⚠️ <strong>Lưu ý Zero-Knowledge</strong>: Email xác nhận giúp bạn khôi phục quyền đăng nhập tài khoản. Để khôi phục dữ liệu mật khẩu trong kho, hãy sử dụng file sao lưu <strong>.json</strong> đã tải về trước đó!
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="cancelForgotBtn" class="btn btn-secondary">Hủy</button>
+          <button type="submit" class="btn btn-primary">✉️ Gửi Email Xác Nhận</button>
         </div>
       </form>
     </div>
@@ -806,6 +800,10 @@
     let currentSaltBase64 = null;
     const STORAGE_KEY = "zk_vault_encrypted_payload";
 
+    // HARDCODED SECURE SUPABASE BACKEND ENDPOINT (BẢO MẬT TỰ ĐỘNG - KHÔNG HIỂN THỊ NÚT CẤU HÌNH CLOUD TRÊN UI)
+    const SYSTEM_SUPABASE_URL = "https://tmvwqtdoijwkcykgvyis.supabase.co";
+    const SYSTEM_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdndxdGRvaWp3a2N5a2d2eWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2ODg5ODcsImV4cCI6MjEwMDI2NDk4N30.2gY0V_l0x_hA3mBkW_92l-c9c";
+
     // SUPABASE STATE
     let supabaseClient = null;
     let currentUser = null;
@@ -849,15 +847,7 @@
     const unlockImportBtn = document.getElementById("unlockImportBtn");
     const importFileInput = document.getElementById("importFileInput");
 
-    // CLOUD SYNC & AUTH DOM
-    const cloudSyncModalBtn = document.getElementById("cloudSyncModalBtn");
-    const cloudModal = document.getElementById("cloudModal");
-    const closeCloudModal = document.getElementById("closeCloudModal");
-    const cloudSyncForm = document.getElementById("cloudSyncForm");
-    const supabaseUrlInput = document.getElementById("supabaseUrl");
-    const supabaseAnonKeyInput = document.getElementById("supabaseAnonKey");
-    const syncUserIdInput = document.getElementById("syncUserId");
-    const pullCloudBtn = document.getElementById("pullCloudBtn");
+    // AUTH DOM
     const oauthContainer = document.getElementById("oauthContainer");
     const googleLoginBtn = document.getElementById("googleLoginBtn");
     const githubLoginBtn = document.getElementById("githubLoginBtn");
@@ -866,13 +856,13 @@
     const userEmailText = document.getElementById("userEmailText");
     const logoutAuthBtn = document.getElementById("logoutAuthBtn");
 
-    // HELPER: SANITIZE SUPABASE URL
-    function sanitizeSupabaseUrl(rawUrl) {
-      if (!rawUrl) return "";
-      return rawUrl.trim()
-        .replace(/\/rest\/v1\/?$/, '')
-        .replace(/\/$/, '');
-    }
+    // FORGOT PASSWORD DOM
+    const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+    const forgotPasswordModal = document.getElementById("forgotPasswordModal");
+    const closeForgotModal = document.getElementById("closeForgotModal");
+    const cancelForgotBtn = document.getElementById("cancelForgotBtn");
+    const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+    const resetEmailInput = document.getElementById("resetEmailInput");
 
     // APP INIT
     function initAppUI() {
@@ -890,28 +880,9 @@
 
     // SUPABASE CLIENT INIT & AUTH LISTENERS
     function initSupabase() {
-      let url = "";
-      let key = "";
-
-      const savedCfg = localStorage.getItem("zk_cloud_config");
-      if (savedCfg) {
+      if (window.supabase && !supabaseClient) {
         try {
-          const cfg = JSON.parse(savedCfg);
-          url = sanitizeSupabaseUrl(cfg.url);
-          key = (cfg.key || "").trim();
-          syncUserIdInput.value = cfg.userId || "";
-        } catch(e) {}
-      }
-
-      if (!url && supabaseUrlInput.value) url = sanitizeSupabaseUrl(supabaseUrlInput.value);
-      if (!key && supabaseAnonKeyInput.value) key = supabaseAnonKeyInput.value.trim();
-
-      supabaseUrlInput.value = url;
-      supabaseAnonKeyInput.value = key;
-
-      if (url && key && window.supabase && !supabaseClient) {
-        try {
-          supabaseClient = window.supabase.createClient(url, key, {
+          supabaseClient = window.supabase.createClient(SYSTEM_SUPABASE_URL, SYSTEM_SUPABASE_KEY, {
             auth: {
               persistSession: true,
               detectSessionInUrl: true
@@ -957,7 +928,7 @@
     function updateUserProfileUI() {
       if (currentUser) {
         userProfileBadge.classList.remove("hidden");
-        if (oauthContainer) oauthContainer.classList.add("hidden"); // Ẩn hoàn toàn nút Google & GitHub khi đã đăng nhập
+        if (oauthContainer) oauthContainer.classList.add("hidden");
 
         const email = currentUser.email || currentUser.user_metadata?.email || "Authenticated User";
         userEmailText.textContent = email;
@@ -970,7 +941,7 @@
         }
       } else {
         userProfileBadge.classList.add("hidden");
-        if (oauthContainer) oauthContainer.classList.remove("hidden"); // Hiển thị nút OAuth khi chưa đăng nhập
+        if (oauthContainer) oauthContainer.classList.remove("hidden");
       }
     }
 
@@ -979,22 +950,12 @@
     githubLoginBtn.addEventListener("click", () => loginWithProvider("github"));
 
     async function loginWithProvider(provider) {
-      const url = sanitizeSupabaseUrl(supabaseUrlInput.value);
-      const key = supabaseAnonKeyInput.value.trim();
-
-      if (!supabaseClient && (!url || !key)) {
-        showToast("Vui lòng nhập Supabase Project URL & Anon Key trong Cấu Hình Cloud trước!", "danger");
-        cloudModal.classList.remove("hidden");
-        return;
-      }
-
-      if (!supabaseClient && url && key) {
-        localStorage.setItem("zk_cloud_config", JSON.stringify({ url, key, userId: syncUserIdInput.value.trim() }));
+      if (!supabaseClient) {
         initSupabase();
       }
 
       if (!supabaseClient) {
-        showToast("Supabase Client chưa được khởi tạo! Kiểm tra Anon Key.", "danger");
+        showToast("Hệ thống Supabase Client chưa sẵn sàng!", "danger");
         return;
       }
 
@@ -1013,6 +974,37 @@
         hasPulledCloud = false;
         updateUserProfileUI();
         showToast("Đã đăng xuất tài khoản OAuth!", "info");
+      }
+    });
+
+    // FORGOT PASSWORD / EMAIL RESET LINK
+    forgotPasswordBtn.addEventListener("click", () => forgotPasswordModal.classList.remove("hidden"));
+    closeForgotModal.addEventListener("click", () => forgotPasswordModal.classList.add("hidden"));
+    cancelForgotBtn.addEventListener("click", () => forgotPasswordModal.classList.add("hidden"));
+
+    forgotPasswordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = resetEmailInput.value.trim();
+      if (!email) return;
+
+      if (!supabaseClient) {
+        initSupabase();
+      }
+
+      if (!supabaseClient) {
+        showToast("Hệ thống Auth chưa sẵn sàng!", "danger");
+        return;
+      }
+
+      const redirectTo = window.location.origin + window.location.pathname;
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+
+      if (error) {
+        showToast("Lỗi gửi Email: " + error.message, "danger");
+      } else {
+        showToast("✉️ Đã gửi Email xác nhận đến " + email + "! Hãy kiểm tra Hòm thư.", "success");
+        forgotPasswordForm.reset();
+        forgotPasswordModal.classList.add("hidden");
       }
     });
 
@@ -1347,7 +1339,7 @@
       genResult.value = pass;
     }
 
-    // BACKUP EXPORT & IMPORT LOGIC
+    // BACKUP EXPORT & IMPORT LOGIC (HỖ TRỢ CẢ FILE .JSON MÃ HÓA & DẠNG PLAIN ACCOUNTS ARRAY)
     exportBackupBtn.addEventListener("click", () => {
       const payloadStr = localStorage.getItem(STORAGE_KEY);
       if (!payloadStr) {
@@ -1378,98 +1370,61 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
-          const data = JSON.parse(event.target.result);
-          if (!data.salt || !data.iv || !data.ciphertext) {
-            throw new Error("File sao lưu không đúng định dạng mã hóa ZK Vault!");
+          const content = event.target.result;
+          let data;
+          try {
+            data = JSON.parse(content);
+          } catch(pErr) {
+            throw new Error("File nhập vào không phải định dạng JSON hợp lệ!");
           }
 
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            salt: data.salt,
-            iv: data.iv,
-            ciphertext: data.ciphertext
-          }));
+          // TRƯỜNG HỢP 1: File Backup Mã Hóa Chuẩn ZK Vault (Chứa salt, iv, ciphertext)
+          if (data.salt && data.iv && data.ciphertext) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              salt: data.salt,
+              iv: data.iv,
+              ciphertext: data.ciphertext
+            }));
+            showToast("Đã khôi phục file sao lưu mã hóa! Hãy nhập Master Password để mở khóa.", "success");
+            lockVault();
+            return;
+          }
 
-          showToast("Đã khôi phục file sao lưu thành công! Hãy nhập Master Password để mở khóa.", "success");
-          lockVault();
+          // TRƯỜNG HỢP 2: File JSON Danh Sách Tài Khoản Thô (Ví dụ từ Google Sheets export)
+          if (Array.isArray(data)) {
+            if (!currentKey) {
+              alert("Vui lòng mở khóa Kho Mật Khẩu bằng Master Password trước khi Import danh sách tài khoản!");
+              return;
+            }
+
+            let addedCount = 0;
+            data.forEach(item => {
+              if (item.service || item.username || item.password) {
+                currentVaultData.push({
+                  id: item.id || (Date.now().toString() + Math.random().toString(36).substr(2, 5)),
+                  service: item.service || item.name || "Dịch vụ",
+                  username: item.username || "(Không có username)",
+                  password: item.password || ""
+                });
+                addedCount++;
+              }
+            });
+
+            await saveVaultToStorage();
+            renderVaultGrid(currentVaultData);
+            showToast(`🎉 Đã nạp thành công ${addedCount} tài khoản từ file vào kho mã hóa!`, "success");
+            return;
+          }
+
+          throw new Error("Cấu trúc file JSON không đúng định dạng hỗ trợ!");
         } catch (err) {
           alert("Lỗi khôi phục sao lưu: " + err.message);
         }
       };
       reader.readAsText(file);
       importFileInput.value = "";
-    });
-
-    // CLOUD SYNC CONFIG & MANUAL PUSH/PULL
-    cloudSyncModalBtn.addEventListener("click", () => cloudModal.classList.remove("hidden"));
-    closeCloudModal.addEventListener("click", () => cloudModal.classList.add("hidden"));
-
-    cloudSyncForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const rawUrl = supabaseUrlInput.value;
-      const key = supabaseAnonKeyInput.value.trim();
-      const userId = syncUserIdInput.value.trim();
-
-      const cleanUrl = sanitizeSupabaseUrl(rawUrl);
-
-      if (!cleanUrl || !key) {
-        showToast("Vui lòng điền đầy đủ URL và Anon Key!", "danger");
-        return;
-      }
-
-      localStorage.setItem("zk_cloud_config", JSON.stringify({ url: cleanUrl, key, userId }));
-      supabaseClient = null; // Reset to force re-creation
-      hasPulledCloud = false;
-      initSupabase();
-      showToast("Đã lưu cấu hình Supabase Cloud!", "success");
-      cloudModal.classList.add("hidden");
-    });
-
-    pullCloudBtn.addEventListener("click", async () => {
-      if (currentUser) {
-        hasPulledCloud = false;
-        await autoPullFromCloud();
-        cloudModal.classList.add("hidden");
-        return;
-      }
-
-      const rawUrl = supabaseUrlInput.value;
-      const key = supabaseAnonKeyInput.value.trim();
-      const userId = syncUserIdInput.value.trim();
-
-      const cleanUrl = sanitizeSupabaseUrl(rawUrl);
-
-      if (!cleanUrl || !key || !userId) {
-        showToast("Vui lòng nhập Sync ID hoặc Đăng nhập bằng Google/GitHub!", "danger");
-        return;
-      }
-
-      try {
-        const res = await fetch(`${cleanUrl}/rest/v1/vaults?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
-          headers: {
-            "apikey": key,
-            "Authorization": `Bearer ${key}`
-          }
-        });
-
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const cloudVault = data[0];
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            salt: cloudVault.salt,
-            iv: cloudVault.iv,
-            ciphertext: cloudVault.ciphertext
-          }));
-          showToast("Đã tải kho mã hóa mới nhất từ Cloud thành công! Hãy mở khóa.", "success");
-          cloudModal.classList.add("hidden");
-          lockVault();
-        } else {
-          showToast("Không tìm thấy dữ liệu kho trên Cloud cho Sync ID này!", "danger");
-        }
-      } catch (err) {
-        showToast("Lỗi tải từ Cloud: " + err.message, "danger");
-      }
     });
 
     // PWA SERVICE WORKER REGISTRATION & INSTALL PROMPT
