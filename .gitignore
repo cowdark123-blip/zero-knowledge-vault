@@ -4,3 +4,5 @@ test_result.png
 *.log
 .system_generated/
 scratch/
+accounts_import.json
+convert_sheet_to_json.py
