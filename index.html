@@ -1114,7 +1114,7 @@
       }
     });
 
-    // AUTO PUSH TO SUPABASE CLOUD (HỖ TRỢ LƯU VÀ ĐỒNG BỘ ĐẦY ĐỦ VÀO DATABASE)
+    // AUTO PUSH TO SUPABASE CLOUD
     async function autoPushToCloud() {
       if (!supabaseClient || !currentUser) return;
       const payloadStr = localStorage.getItem(STORAGE_KEY);
@@ -1141,7 +1141,7 @@
       }
     }
 
-    // AUTO PULL FROM SUPABASE CLOUD
+    // AUTO PULL FROM SUPABASE CLOUD (FIX BUG: KHÔNG GHI ĐÈ LOCALSTORAGE NẾU TRÊN MÁY ĐÃ CÓ KHO NGUYÊN BẢN)
     async function autoPullFromCloud() {
       if (!supabaseClient || !currentUser) return;
       try {
@@ -1161,13 +1161,17 @@
             ciphertext: data.ciphertext
           });
 
-          if (currentLocal !== newPayload) {
+          if (!currentLocal) {
+            // Chỉ ghi đè từ Cloud nếu ở máy cục bộ chưa có dữ liệu kho!
             localStorage.setItem(STORAGE_KEY, newPayload);
             initAppUI();
-            showToast("📥 Đã tự động tải kho mã hóa mới nhất từ Supabase Database!", "info");
+            showToast("📥 Đã tự động tải kho mã hóa từ Supabase Database!", "info");
+          } else if (currentLocal !== newPayload) {
+            // Nếu dữ liệu máy cục bộ mới hơn hoặc khác dữ liệu Cloud, đẩy dữ liệu máy lên Cloud!
+            await autoPushToCloud();
           }
         } else if (!data && currentLocal) {
-          // Trường hợp Cloud chưa có dữ liệu cho user này: Tự động đẩy kho mã hóa hiện tại lên Database!
+          // Trường hợp Cloud chưa có dữ liệu: Tự động đẩy kho máy cục bộ lên Database!
           await autoPushToCloud();
         }
       } catch(e) {
@@ -1304,6 +1308,7 @@
         showToast("Đã khóa kho dữ liệu và xóa Key khỏi RAM!", "info");
       }
     }
+    window.lockVault = lockVault;
 
     lockBtn.addEventListener("click", () => lockVault(false));
 
