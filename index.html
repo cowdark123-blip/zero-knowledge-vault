@@ -809,6 +809,7 @@
     // SUPABASE STATE
     let supabaseClient = null;
     let currentUser = null;
+    let hasPulledCloud = false;
 
     // TIMERS & SECURITY CONTROLS
     let autoLockTimer = null;
@@ -873,7 +874,7 @@
     }
 
     // APP INIT
-    function initApp() {
+    function initAppUI() {
       const storedPayload = localStorage.getItem(STORAGE_KEY);
       if (!storedPayload) {
         unlockTitle.textContent = "Khởi Tạo Kho Mật Khẩu Mới";
@@ -884,8 +885,6 @@
         unlockDesc.textContent = "Nhập Master Password để giải mã dữ liệu an toàn ngay trên RAM trình duyệt.";
         unlockSubmitBtn.textContent = "Mở Khóa Kho Dữ Liệu";
       }
-
-      initSupabase();
     }
 
     // SUPABASE CLIENT INIT & AUTH LISTENERS
@@ -903,14 +902,13 @@
         } catch(e) {}
       }
 
-      // Also fallback to input fields if user typed in modal
       if (!url && supabaseUrlInput.value) url = sanitizeSupabaseUrl(supabaseUrlInput.value);
       if (!key && supabaseAnonKeyInput.value) key = supabaseAnonKeyInput.value.trim();
 
       supabaseUrlInput.value = url;
       supabaseAnonKeyInput.value = key;
 
-      if (url && key && window.supabase) {
+      if (url && key && window.supabase && !supabaseClient) {
         try {
           supabaseClient = window.supabase.createClient(url, key, {
             auth: {
@@ -933,16 +931,21 @@
         if (session && session.user) {
           currentUser = session.user;
           updateUserProfileUI();
-          autoPullFromCloud();
+          if (!hasPulledCloud) {
+            autoPullFromCloud();
+          }
         }
 
         supabaseClient.auth.onAuthStateChange((event, session) => {
           if (session && session.user) {
             currentUser = session.user;
             updateUserProfileUI();
-            autoPullFromCloud();
+            if (!hasPulledCloud) {
+              autoPullFromCloud();
+            }
           } else {
             currentUser = null;
+            hasPulledCloud = false;
             updateUserProfileUI();
           }
         });
@@ -1002,6 +1005,7 @@
       if (supabaseClient) {
         await supabaseClient.auth.signOut();
         currentUser = null;
+        hasPulledCloud = false;
         updateUserProfileUI();
         showToast("Đã đăng xuất tài khoản OAuth!", "info");
       }
@@ -1035,6 +1039,7 @@
     async function autoPullFromCloud() {
       if (!supabaseClient || !currentUser) return;
       try {
+        hasPulledCloud = true;
         const { data, error } = await supabaseClient
           .from('vaults')
           .select('*')
@@ -1042,13 +1047,18 @@
           .single();
 
         if (data && data.ciphertext) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          const currentLocal = localStorage.getItem(STORAGE_KEY);
+          const newPayload = JSON.stringify({
             salt: data.salt,
             iv: data.iv,
             ciphertext: data.ciphertext
-          }));
-          initApp();
-          showToast("📥 Đã tự động tải kho mã hóa mới nhất từ Cloud!", "info");
+          });
+
+          if (currentLocal !== newPayload) {
+            localStorage.setItem(STORAGE_KEY, newPayload);
+            initAppUI();
+            showToast("📥 Đã tự động tải kho mã hóa mới nhất từ Cloud!", "info");
+          }
         }
       } catch(e) {}
     }
@@ -1152,7 +1162,7 @@
       dashboardScreen.classList.add("hidden");
       headerActions.classList.add("hidden");
       unlockScreen.classList.remove("hidden");
-      initApp();
+      initAppUI();
 
       if (dueToInactivity) {
         showToast("Đã tự động khóa kho do không hoạt động trong 5 phút!", "danger");
@@ -1404,13 +1414,16 @@
       }
 
       localStorage.setItem("zk_cloud_config", JSON.stringify({ url: cleanUrl, key, userId }));
+      supabaseClient = null; // Reset to force re-creation
+      hasPulledCloud = false;
       initSupabase();
-      showToast("Đã lưu cấu hình Supabase Cloud & Khởi tạo Khóa API!", "success");
+      showToast("Đã lưu cấu hình Supabase Cloud!", "success");
       cloudModal.classList.add("hidden");
     });
 
     pullCloudBtn.addEventListener("click", async () => {
       if (currentUser) {
+        hasPulledCloud = false;
         await autoPullFromCloud();
         cloudModal.classList.add("hidden");
         return;
@@ -1493,7 +1506,8 @@
     }
 
     // INITIALIZE
-    initApp();
+    initAppUI();
+    initSupabase();
   </script>
 </body>
 </html>
