@@ -800,9 +800,8 @@
     let currentSaltBase64 = null;
     const STORAGE_KEY = "zk_vault_encrypted_payload";
 
-    // HARDCODED SECURE SUPABASE BACKEND ENDPOINT (BẢO MẬT TỰ ĐỘNG - KHÔNG HIỂN THỊ NÚT CẤU HÌNH CLOUD TRÊN UI)
+    // HARDCODED SECURE SUPABASE BACKEND ENDPOINT
     const SYSTEM_SUPABASE_URL = "https://tmvwqtdoijwkcykgvyis.supabase.co";
-    const SYSTEM_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtdndxdGRvaWp3a2N5a2d2eWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2ODg5ODcsImV4cCI6MjEwMDI2NDk4N30.2gY0V_l0x_hA3mBkW_92l-c9c";
 
     // SUPABASE STATE
     let supabaseClient = null;
@@ -864,6 +863,14 @@
     const forgotPasswordForm = document.getElementById("forgotPasswordForm");
     const resetEmailInput = document.getElementById("resetEmailInput");
 
+    // HELPER: SANITIZE SUPABASE URL
+    function sanitizeSupabaseUrl(rawUrl) {
+      if (!rawUrl) return "";
+      return rawUrl.trim()
+        .replace(/\/rest\/v1\/?$/, '')
+        .replace(/\/$/, '');
+    }
+
     // APP INIT
     function initAppUI() {
       const storedPayload = localStorage.getItem(STORAGE_KEY);
@@ -880,9 +887,21 @@
 
     // SUPABASE CLIENT INIT & AUTH LISTENERS
     function initSupabase() {
-      if (window.supabase && !supabaseClient) {
+      let url = SYSTEM_SUPABASE_URL;
+      let key = "";
+
+      const savedCfg = localStorage.getItem("zk_cloud_config");
+      if (savedCfg) {
         try {
-          supabaseClient = window.supabase.createClient(SYSTEM_SUPABASE_URL, SYSTEM_SUPABASE_KEY, {
+          const cfg = JSON.parse(savedCfg);
+          if (cfg.url) url = sanitizeSupabaseUrl(cfg.url);
+          if (cfg.key) key = cfg.key.trim();
+        } catch(e) {}
+      }
+
+      if (url && key && window.supabase && !supabaseClient) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key, {
             auth: {
               persistSession: true,
               detectSessionInUrl: true
@@ -945,6 +964,20 @@
       }
     }
 
+    // PROMPT USER FOR SUPABASE ANON KEY IF NEEDED
+    function promptForAnonKey() {
+      const key = prompt("Vui lòng dán Supabase Anon Key (từ Supabase Dashboard -> Project Settings -> API) để kích hoạt Auth & Email:");
+      if (key && key.trim()) {
+        const url = SYSTEM_SUPABASE_URL;
+        localStorage.setItem("zk_cloud_config", JSON.stringify({ url, key: key.trim() }));
+        supabaseClient = null;
+        initSupabase();
+        showToast("Đã lưu Anon Key hợp lệ!", "success");
+        return true;
+      }
+      return false;
+    }
+
     // OAUTH LOGIN & LOGOUT
     googleLoginBtn.addEventListener("click", () => loginWithProvider("google"));
     githubLoginBtn.addEventListener("click", () => loginWithProvider("github"));
@@ -955,8 +988,7 @@
       }
 
       if (!supabaseClient) {
-        showToast("Hệ thống Supabase Client chưa sẵn sàng!", "danger");
-        return;
+        if (!promptForAnonKey()) return;
       }
 
       const redirectTo = window.location.origin + window.location.pathname;
@@ -964,7 +996,13 @@
         provider: provider,
         options: { redirectTo }
       });
-      if (error) showToast("Lỗi đăng nhập OAuth: " + error.message, "danger");
+      if (error) {
+        if (error.message && error.message.toLowerCase().includes("api key")) {
+          promptForAnonKey();
+        } else {
+          showToast("Lỗi đăng nhập OAuth: " + error.message, "danger");
+        }
+      }
     }
 
     logoutAuthBtn.addEventListener("click", async () => {
@@ -992,15 +1030,20 @@
       }
 
       if (!supabaseClient) {
-        showToast("Hệ thống Auth chưa sẵn sàng!", "danger");
-        return;
+        if (!promptForAnonKey()) return;
       }
 
       const redirectTo = window.location.origin + window.location.pathname;
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
 
       if (error) {
-        showToast("Lỗi gửi Email: " + error.message, "danger");
+        if (error.message && error.message.toLowerCase().includes("api key")) {
+          if (promptForAnonKey()) {
+            showToast("Vui lòng thử bấm Gửi Email Xác Nhận lại lần nữa!", "info");
+          }
+        } else {
+          showToast("Lỗi gửi Email: " + error.message, "danger");
+        }
       } else {
         showToast("✉️ Đã gửi Email xác nhận đến " + email + "! Hãy kiểm tra Hòm thư.", "success");
         forgotPasswordForm.reset();
