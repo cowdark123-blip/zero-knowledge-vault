@@ -360,7 +360,36 @@
 
     .search-box {
       flex: 1;
-      min-width: 250px;
+      min-width: 200px;
+    }
+
+    .sort-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    select.select-sort {
+      background: rgba(6, 9, 17, 0.7);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--color-text-main);
+      font-size: 0.88rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    select.select-sort:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    select.select-sort option {
+      background: #0d1321;
+      color: var(--color-text-main);
     }
 
     /* Vault Account Cards - Hallmark Tactile Style */
@@ -657,6 +686,17 @@
         <div class="search-box">
           <input type="text" id="searchInput" placeholder="🔍 Tìm kiếm dịch vụ hoặc tài khoản...">
         </div>
+
+        <div class="sort-controls">
+          <select id="sortBySelect" class="select-sort" title="Sắp xếp theo">
+            <option value="name">🔤 Tên dịch vụ</option>
+            <option value="date">📅 Ngày thêm</option>
+          </select>
+          <button id="sortOrderBtn" class="btn btn-secondary" title="Đổi chiều sắp xếp (Tăng/Giảm)" style="padding: 10px 14px;">
+            <span id="sortOrderIcon">⬆️ Tăng dần</span>
+          </button>
+        </div>
+
         <div style="display: flex; gap: 10px;">
           <button id="generatorBtn" class="btn btn-secondary">
             🎲 Tạo Mật Khẩu
@@ -1304,7 +1344,7 @@
         dashboardScreen.classList.remove("hidden");
         headerActions.classList.remove("hidden");
         updateTrashBadge();
-        renderVaultGrid(currentVaultData);
+        renderVaultGrid();
         resetAutoLockTimer();
       } catch (err) {
         unlockError.textContent = err.message || "Master Password không chính xác!";
@@ -1425,10 +1465,41 @@
       }
     });
 
+    // SORT & SEARCH FILTERING LOGIC
+    let currentSortBy = "name"; // "name" | "date"
+    let currentSortOrder = "asc"; // "asc" | "desc"
+
+    function getSortedAndFilteredItems() {
+      const query = (searchInput.value || "").trim().toLowerCase();
+      
+      let filtered = currentVaultData.filter(acc => 
+        (acc.service || "").toLowerCase().includes(query) || 
+        (acc.username || "").toLowerCase().includes(query)
+      );
+
+      filtered.sort((a, b) => {
+        let result = 0;
+        if (currentSortBy === "name") {
+          const nameA = (a.service || "").toLowerCase();
+          const nameB = (b.service || "").toLowerCase();
+          result = nameA.localeCompare(nameB);
+        } else if (currentSortBy === "date") {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (Number(a.id) || 0);
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (Number(b.id) || 0);
+          result = timeA - timeB;
+        }
+
+        return currentSortOrder === "asc" ? result : -result;
+      });
+
+      return filtered;
+    }
+
     // RENDER VAULT ITEMS
     function renderVaultGrid(items) {
+      const itemsToRender = items !== undefined ? items : getSortedAndFilteredItems();
       vaultGrid.innerHTML = "";
-      if (!items || items.length === 0) {
+      if (!itemsToRender || itemsToRender.length === 0) {
         vaultGrid.innerHTML = `
           <div class="empty-state">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -1438,7 +1509,7 @@
         return;
       }
 
-      items.forEach((item) => {
+      itemsToRender.forEach((item) => {
         const card = document.createElement("div");
         card.className = "account-card";
         const initialLetter = (item.service || "S").charAt(0).toUpperCase();
@@ -1478,7 +1549,7 @@
         currentTrashData.push(itemToTrash);
 
         await saveVaultToStorage();
-        renderVaultGrid(currentVaultData);
+        renderVaultGrid();
         showToast("Đã chuyển tài khoản vào Thùng Rác!", "info");
       }
     };
@@ -1536,7 +1607,7 @@
       currentVaultData.push(itemToRestore);
 
       await saveVaultToStorage();
-      renderVaultGrid(currentVaultData);
+      renderVaultGrid();
       renderTrashList();
       showToast("🔄 Đã khôi phục tài khoản về kho dữ liệu!", "success");
     };
@@ -1589,14 +1660,22 @@
       });
     };
 
-    // SEARCH FILTER
-    searchInput.addEventListener("input", (e) => {
-      const query = e.target.value.toLowerCase();
-      const filtered = currentVaultData.filter(acc => 
-        acc.service.toLowerCase().includes(query) || 
-        acc.username.toLowerCase().includes(query)
-      );
-      renderVaultGrid(filtered);
+    // SEARCH & SORT LISTENERS
+    searchInput.addEventListener("input", () => renderVaultGrid());
+
+    const sortBySelect = document.getElementById("sortBySelect");
+    const sortOrderBtn = document.getElementById("sortOrderBtn");
+    const sortOrderIcon = document.getElementById("sortOrderIcon");
+
+    sortBySelect.addEventListener("change", (e) => {
+      currentSortBy = e.target.value;
+      renderVaultGrid();
+    });
+
+    sortOrderBtn.addEventListener("click", () => {
+      currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
+      sortOrderIcon.textContent = currentSortOrder === "asc" ? "⬆️ Tăng dần" : "⬇️ Giảm dần";
+      renderVaultGrid();
     });
 
     // ADD ACCOUNT MODAL
@@ -1619,12 +1698,13 @@
         id: Date.now().toString(),
         service,
         username,
-        password
+        password,
+        createdAt: new Date().toISOString()
       };
 
       currentVaultData.push(newAccount);
       await saveVaultToStorage();
-      renderVaultGrid(currentVaultData);
+      renderVaultGrid();
 
       addAccountForm.reset();
       addModal.classList.add("hidden");
