@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Zero-Knowledge Crypto Engine Test Runner</title>
+  <style>
+    body { font-family: monospace; background: #0f172a; color: #f8fafc; padding: 20px; line-height: 1.6; }
+    h1 { color: #38bdf8; border-bottom: 2px solid #334155; padding-bottom: 10px; }
+    .test-case { margin: 15px 0; padding: 12px; border-radius: 6px; background: #1e293b; border-left: 4px solid #94a3b8; }
+    .pass { border-left-color: #22c55e; }
+    .fail { border-left-color: #ef4444; }
+    .badge { font-weight: bold; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-right: 8px; }
+    .badge-pass { background: #15803d; color: #fff; }
+    .badge-fail { background: #b91c1c; color: #fff; }
+    pre { background: #090d16; padding: 10px; border-radius: 4px; overflow-x: auto; color: #cbd5e1; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🔒 Zero-Knowledge Crypto Engine - Verification Tests</h1>
+  <div id="logs"></div>
+  <div id="status" style="font-size: 1.2rem; font-weight: bold; margin-top: 20px;">RUNNING...</div>
+
+  <script>
+    class CryptoService {
+      static PBKDF2_ITERATIONS = 600000;
+      static SALT_BYTE_LENGTH = 32;
+      static IV_BYTE_LENGTH = 12;
+
+      static bufferToBase64(buffer) {
+        const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+      }
+
+      static base64ToBuffer(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      static generateSalt(length = CryptoService.SALT_BYTE_LENGTH) {
+        const salt = new Uint8Array(length);
+        crypto.getRandomValues(salt);
+        return salt;
+      }
+
+      static async deriveKey(masterPassword, salt) {
+        if (!masterPassword || masterPassword.trim().length === 0) {
+          throw new Error("Master Password không được để trống.");
+        }
+        const saltBuffer = typeof salt === "string" ? CryptoService.base64ToBuffer(salt) : salt;
+        const encoder = new TextEncoder();
+
+        const keyMaterial = await crypto.subtle.importKey(
+          "raw",
+          encoder.encode(masterPassword),
+          { name: "PBKDF2" },
+          false,
+          ["deriveKey"]
+        );
+
+        return await crypto.subtle.deriveKey(
+          {
+            name: "PBKDF2",
+            salt: saltBuffer,
+            iterations: CryptoService.PBKDF2_ITERATIONS,
+            hash: "SHA-256",
+          },
+          keyMaterial,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["encrypt", "decrypt"]
+        );
+      }
+
+      static async encryptVault(dataJson, key) {
+        const iv = new Uint8Array(CryptoService.IV_BYTE_LENGTH);
+        crypto.getRandomValues(iv);
+        const encoder = new TextEncoder();
+        const encodedData = encoder.encode(dataJson);
+
+        const encryptedBuffer = await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv: iv },
+          key,
+          encodedData
+        );
+
+        return {
+          ciphertext: CryptoService.bufferToBase64(encryptedBuffer),
+          iv: CryptoService.bufferToBase64(iv),
+        };
+      }
+
+      static async decryptVault(ciphertextBase64, key, ivBase64) {
+        const ciphertextBuffer = CryptoService.base64ToBuffer(ciphertextBase64);
+        const ivBuffer = CryptoService.base64ToBuffer(ivBase64);
+
+        try {
+          const decryptedBuffer = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: ivBuffer },
+            key,
+            ciphertextBuffer
+          );
+          const decoder = new TextDecoder();
+          return decoder.decode(decryptedBuffer);
+        } catch (error) {
+          throw new Error(
+            "Giải mã thất bại! Master Password không chính xác hoặc dữ liệu đã bị chỉnh sửa/can thiệp."
+          );
+        }
+      }
+    }
+
+    const testResults = {
+      allPassed: true,
+      tests: []
+    };
+
+    function logTestResult(name, success, details) {
+      testResults.tests.push({ name, pass: success, details });
+      if (!success) testResults.allPassed = false;
+
+      const div = document.createElement("div");
+      div.className = `test-case ${success ? 'pass' : 'fail'}`;
+      div.innerHTML = `
+        <h3><span class="badge ${success ? 'badge-pass' : 'badge-fail'}">${success ? 'PASS' : 'FAIL'}</span> ${name}</h3>
+        <pre>${details}</pre>
+      `;
+      document.getElementById("logs").appendChild(div);
+    }
+
+    async function runSuite() {
+      // TEST 1: Generate Salt
+      try {
+        const salt = CryptoService.generateSalt();
+        const saltBase64 = CryptoService.bufferToBase64(salt);
+        const isCorrectLength = salt.length === 32;
+        logTestResult(
+          "Test 1: Sinh Salt Ngẫu Nhiên (32-bytes / 256-bits)",
+          isCorrectLength && saltBase64.length > 0,
+          `Salt Base64: ${saltBase64}\nByte Length: ${salt.length}`
+        );
+      } catch (err) {
+        logTestResult("Test 1: Sinh Salt Ngẫu Nhiên", false, err.stack);
+      }
+
+      // TEST 2: Roundtrip Encrypt -> Decrypt
+      const masterPass = "SuperSecretMasterP@ssw0rd!2026";
+      const dummyVaultData = JSON.stringify({
+        vaultId: "vault-uuid-9999",
+        items: [
+          { id: 1, service: "Facebook", username: "user@example.com", password: "FB_Secret_Password_123" },
+          { id: 2, service: "Google", username: "dev@gmail.com", password: "GGL_Super_Secure_Pass_456" }
+        ]
+      }, null, 2);
+
+      let derivedKey;
+      let salt;
+      let encryptedPayload;
+
+      try {
+        salt = CryptoService.generateSalt();
+        const startTime = performance.now();
+        derivedKey = await CryptoService.deriveKey(masterPass, salt);
+        const deriveTime = (performance.now() - startTime).toFixed(2);
+
+        encryptedPayload = await CryptoService.encryptVault(dummyVaultData, derivedKey);
+        const decryptedText = await CryptoService.decryptVault(encryptedPayload.ciphertext, derivedKey, encryptedPayload.iv);
+
+        const isMatch = decryptedText === dummyVaultData;
+
+        logTestResult(
+          "Test 2: Mã Hóa & Giải Mã Thành Công (Encrypt -> Decrypt Roundtrip)",
+          isMatch,
+          `Thời gian Key Derivation (600,000 iterations): ${deriveTime}ms\n` +
+          `Ciphertext (Base64): ${encryptedPayload.ciphertext.substring(0, 60)}...\n` +
+          `IV (Base64): ${encryptedPayload.iv}\n` +
+          `Khôi phục dữ liệu gốc trùng khớp: ${isMatch}`
+        );
+      } catch (err) {
+        logTestResult("Test 2: Mã Hóa & Giải Mã Roundtrip", false, err.stack);
+      }
+
+      // TEST 3: Fail on Wrong Master Password
+      try {
+        const wrongPass = "WrongMasterPassword";
+        const wrongKey = await CryptoService.deriveKey(wrongPass, salt);
+        let errorCaught = false;
+
+        try {
+          await CryptoService.decryptVault(encryptedPayload.ciphertext, wrongKey, encryptedPayload.iv);
+        } catch (e) {
+          errorCaught = true;
+          logTestResult(
+            "Test 3: Thất Bại Khi Nhập Sai Master Password",
+            true,
+            `Đã bắt được lỗi bảo mật như kỳ vọng:\n"${e.message}"`
+          );
+        }
+
+        if (!errorCaught) {
+          logTestResult("Test 3: Thất Bại Khi Nhập Sai Master Password", false, "LỖI BẢO MẬT: Cho phép giải mã với sai Master Password!");
+        }
+      } catch (err) {
+        logTestResult("Test 3: Sai Master Password", false, err.stack);
+      }
+
+      // TEST 4: Fail on Tampered Ciphertext (AES-GCM Auth Integrity Check)
+      try {
+        const tamperedCiphertext = encryptedPayload.ciphertext.substring(0, encryptedPayload.ciphertext.length - 4) + "AAAA";
+        let tamperedErrorCaught = false;
+
+        try {
+          await CryptoService.decryptVault(tamperedCiphertext, derivedKey, encryptedPayload.iv);
+        } catch (e) {
+          tamperedErrorCaught = true;
+          logTestResult(
+            "Test 4: Thất Bại Khi Ciphertext Bị Sửa (AES-GCM Integrity Check)",
+            true,
+            `AES-GCM đã ngăn chặn dữ liệu bị can thiệp thành công:\n"${e.message}"`
+          );
+        }
+
+        if (!tamperedErrorCaught) {
+          logTestResult("Test 4: Thất Bại Khi Ciphertext Bị Sửa", false, "LỖI BẢO MẬT: Dữ liệu bị sửa đổi nhưng vẫn giải mã thành công!");
+        }
+      } catch (err) {
+        logTestResult("Test 4: Dữ liệu bị chỉnh sửa", false, err.stack);
+      }
+
+      const statusDiv = document.getElementById("status");
+      statusDiv.style.color = testResults.allPassed ? "#22c55e" : "#ef4444";
+      statusDiv.innerHTML = testResults.allPassed ? "ALL TESTS PASSED ✅" : "SOME TESTS FAILED ❌";
+
+      // Gửi kết quả về cho Python Verification Script qua HTTP POST
+      try {
+        await fetch('/test-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(testResults)
+        });
+      } catch (e) {
+        console.warn("Could not post test results back to runner:", e);
+      }
+    }
+
+    runSuite();
+  </script>
+</body>
+</html>

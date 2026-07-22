@@ -1,0 +1,6 @@
+# Temporary test output files
+test_output.txt
+test_result.png
+*.log
+.system_generated/
+scratch/

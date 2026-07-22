@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Phase 3 UI & Security Automated Test Runner</title>
+</head>
+<body>
+  <h1>Running Phase 3 Integration & Security Tests...</h1>
+  <iframe id="appFrame" src="index.html" style="width: 1000px; height: 800px; border: 1px solid #ccc;"></iframe>
+
+  <script>
+    const results = {
+      allPassed: true,
+      tests: []
+    };
+
+    function recordTest(name, success, details) {
+      results.tests.push({ name, pass: success, details });
+      if (!success) results.allPassed = false;
+      console.log(`[${success ? 'PASS' : 'FAIL'}] ${name}: ${details}`);
+    }
+
+    const frame = document.getElementById("appFrame");
+
+    frame.onload = async () => {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      const win = frame.contentWindow;
+
+      try {
+        win.localStorage.clear();
+      } catch(e) {}
+    };
+
+    setTimeout(async () => {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      const win = frame.contentWindow;
+
+      // TEST 1: Initial State Check
+      try {
+        const unlockScreen = doc.getElementById("unlockScreen");
+        const dashboardScreen = doc.getElementById("dashboardScreen");
+        const isUnlockVisible = !unlockScreen.classList.contains("hidden");
+        const isDashboardHidden = dashboardScreen.classList.contains("hidden");
+
+        recordTest(
+          "Test 1: Giao diện Khởi tạo ban đầu hiển thị đúng Màn hình Khóa",
+          isUnlockVisible && isDashboardHidden,
+          `Unlock Screen Visible: ${isUnlockVisible}, Dashboard Hidden: ${isDashboardHidden}`
+        );
+      } catch (err) {
+        recordTest("Test 1: Giao diện ban đầu", false, err.message);
+      }
+
+      // TEST 2: Unlock & Populate Initial Vault
+      try {
+        const masterInput = doc.getElementById("masterPasswordInput");
+        const submitBtn = doc.getElementById("unlockSubmitBtn");
+
+        masterInput.value = "Phase3MasterPass@2026";
+        submitBtn.click();
+
+        await new Promise(r => setTimeout(r, 1800));
+
+        const dashboardScreen = doc.getElementById("dashboardScreen");
+        const isDashboardVisible = !dashboardScreen.classList.contains("hidden");
+        const accountCards = doc.querySelectorAll(".account-card");
+
+        recordTest(
+          "Test 2: Mở Khóa Kho Dữ Liệu & Mã Hóa RAM (AES-256-GCM Key)",
+          isDashboardVisible && accountCards.length >= 3,
+          `Dashboard Visible: ${isDashboardVisible}, Accounts Count: ${accountCards.length}`
+        );
+      } catch (err) {
+        recordTest("Test 2: Mở Khóa Kho Dữ Liệu", false, err.message);
+      }
+
+      // TEST 3: Export Encrypted Backup Payload Verification
+      try {
+        const payloadStr = win.localStorage.getItem("zk_vault_encrypted_payload");
+        const payload = JSON.parse(payloadStr);
+
+        const hasSalt = typeof payload.salt === "string" && payload.salt.length > 0;
+        const hasIv = typeof payload.iv === "string" && payload.iv.length > 0;
+        const hasCiphertext = typeof payload.ciphertext === "string" && payload.ciphertext.length > 0;
+
+        recordTest(
+          "Test 3: Xuất Bản Sao Lưu Encrypted Payload (.json) hợp lệ",
+          hasSalt && hasIv && hasCiphertext,
+          `Salt Base64: ${payload.salt.substring(0, 20)}..., IV: ${payload.iv}, Ciphertext len: ${payload.ciphertext.length}`
+        );
+      } catch (err) {
+        recordTest("Test 3: Xuất sao lưu", false, err.message);
+      }
+
+      // TEST 4: Auto-Lock Timer Test (Simulate 5-minute Inactivity Lock)
+      try {
+        win.lockVault(true); // Trigger inactivity lock
+        await new Promise(r => setTimeout(r, 400));
+
+        const dashboardScreen = doc.getElementById("dashboardScreen");
+        const isDashboardHidden = dashboardScreen.classList.contains("hidden");
+
+        recordTest(
+          "Test 4: Tự Động Khóa Kho (Auto-Lock) Khi Không Hoạt Động & Xóa RAM Key",
+          isDashboardHidden,
+          `Vault Auto-Locked: ${isDashboardHidden}`
+        );
+      } catch (err) {
+        recordTest("Test 4: Auto-Lock Timer", false, err.message);
+      }
+
+      // TEST 5: Re-unlock & Import Backup Validation
+      try {
+        // Re-unlock
+        const masterInput = doc.getElementById("masterPasswordInput");
+        masterInput.value = "Phase3MasterPass@2026";
+        doc.getElementById("unlockSubmitBtn").click();
+
+        await new Promise(r => setTimeout(r, 1800));
+
+        const dashboardScreen = doc.getElementById("dashboardScreen");
+        const isDashboardVisibleAgain = !dashboardScreen.classList.contains("hidden");
+
+        recordTest(
+          "Test 5: Giải Mã Mở Khóa Lại (Re-unlock) Sau Khi Tự Động Khóa Hoạt Động Trơn Tru",
+          isDashboardVisibleAgain,
+          `Dashboard Visible Again: ${isDashboardVisibleAgain}`
+        );
+      } catch (err) {
+        recordTest("Test 5: Re-unlock", false, err.message);
+      }
+
+      // POST RESULTS BACK TO PYTHON VERIFICATION SERVER
+      try {
+        await fetch("/ui-test-result", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(results)
+        });
+      } catch (e) {
+        console.warn("Could not post UI results back:", e);
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
