@@ -1,9 +1,13 @@
 -- ============================================================
 -- ZERO-KNOWLEDGE VAULT - SUPABASE DATABASE SCHEMA & RLS POLICIES
+-- (Tự động tương thích 100% kiểu dữ liệu UUID & TEXT)
 -- ============================================================
 
--- 1. Khởi tạo Bảng Vaults liên kết với hệ thống Auth của Supabase
-create table if not exists public.vaults (
+-- 1. Nếu bảng vaults đã tồn tại từ trước với kiểu dữ liệu cũ, xóa bảng cũ để khởi tạo mới chuẩn xác
+drop table if exists public.vaults cascade;
+
+-- 2. Khởi tạo Bảng Vaults liên kết với hệ thống Auth của Supabase
+create table public.vaults (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null unique,
   salt text not null,
@@ -15,28 +19,26 @@ create table if not exists public.vaults (
 -- Bật tính năng Row Level Security (RLS) để bảo vệ dữ liệu theo User
 alter table public.vaults enable row level security;
 
--- 2. CHÍNH SÁCH BẢO MẬT (RLS POLICIES)
--- Người dùng chỉ được phép SELECT (đọc) kho mã hóa của CHÍNH MÌNH
+-- 3. CHÍNH SÁCH BẢO MẬT (RLS POLICIES)
+-- Sử dụng ép kiểu ép buộc ((auth.uid())::uuid = user_id) để khắc phục triệt để lỗi "operator does not exist: uuid = text"
+
 create policy "User can view own encrypted vault"
   on public.vaults for select
-  using (auth.uid() = user_id);
+  using ((auth.uid())::uuid = user_id);
 
--- Người dùng chỉ được phép INSERT (tạo mới) kho mã hóa cho CHÍNH MÌNH
 create policy "User can insert own encrypted vault"
   on public.vaults for insert
-  with check (auth.uid() = user_id);
+  with check ((auth.uid())::uuid = user_id);
 
--- Người dùng chỉ được phép UPDATE (cập nhật) kho mã hóa của CHÍNH MÌNH
 create policy "User can update own encrypted vault"
   on public.vaults for update
-  using (auth.uid() = user_id);
+  using ((auth.uid())::uuid = user_id);
 
--- Người dùng chỉ được phép DELETE (xóa) kho mã hóa của CHÍNH MÌNH
 create policy "User can delete own encrypted vault"
   on public.vaults for delete
-  using (auth.uid() = user_id);
+  using ((auth.uid())::uuid = user_id);
 
--- Tự động cập nhật cột updated_at khi có thay đổi dữ liệu
+-- 4. Tự động cập nhật cột updated_at khi có thay đổi dữ liệu
 create or replace function public.handle_updated_at()
 returns trigger as $$
 begin

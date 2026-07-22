@@ -20,9 +20,9 @@ def main():
         assert os.path.exists(schema_path), "schema.sql file missing!"
         with open(schema_path, "r", encoding="utf-8") as f:
             sql = f.read()
-            assert "create table if not exists public.vaults" in sql
+            assert "create table public.vaults" in sql
             assert "enable row level security" in sql
-            assert "auth.uid() = user_id" in sql
+            assert "(auth.uid())::uuid = user_id" in sql
             assert "create policy" in sql
         print("[PASS] Test 1: File Database Schema & RLS Security Policies (schema.sql) khởi tạo chuẩn xác")
     except Exception as e:
