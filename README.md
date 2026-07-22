@@ -23,36 +23,6 @@
 
 ---
 
-## 🚀 Hướng Dẫn Deploy Miễn Phí (Vercel / Netlify / GitHub Pages)
-
-Vì ứng dụng hoàn toàn không cần server backend (Serverless Client-Side Application), bạn có thể deploy ứng dụng miễn phí chỉ trong 1 phút bằng một trong các dịch vụ sau:
-
-### ⚡ Option 1: Deploy lên Vercel (Khuyên dùng)
-1. Đăng nhập [Vercel.com](https://vercel.com) (bằng tài khoản GitHub).
-2. Chọn **"Add New Project"** -> Import thư mục chứa dự án.
-3. Giữ nguyên mặc định và chọn **Deploy**.
-4. Vercel sẽ tự động cấp một trang web dạng `https://your-vault.vercel.app` bảo mật HTTPS.
-
-### 🌐 Option 2: Deploy Kéo-Thả lên Netlify (Nhanh nhất)
-1. Truy cập [app.netlify.com/drop](https://app.netlify.com/drop).
-2. Kéo toàn bộ thư mục `zero-knowledge-vault` thả vào trình duyệt.
-3. Netlify sẽ tự động xuất bản trang web HTTPS cho bạn trong 5 giây!
-
-### 🐙 Option 3: Deploy lên GitHub Pages
-1. Tạo một Repository mới trên GitHub.
-2. Đẩy toàn bộ mã nguồn lên repository:
-   ```bash
-   git init
-   git add .
-   git commit -m "Deploy ZK-Vault PWA"
-   git branch -M main
-   git remote add origin https://github.com/USERNAME/zero-knowledge-vault.git
-   git push -u origin main
-   ```
-3. Vào **Settings** -> **Pages** -> Tại mục **Branch** chọn `main` -> bấm **Save**.
-
----
-
 ## ☁️ Hướng Dẫn Cấu Hình Đồng Bộ Supabase Cloud (Tùy chọn)
 
 1. Tạo một dự án miễn phí tại [Supabase.com](https://supabase.com).
