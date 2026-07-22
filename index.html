@@ -1057,7 +1057,7 @@
             salt: data.salt,
             iv: data.iv,
             ciphertext: data.ciphertext
-          }));
+          });
 
           if (currentLocal !== newPayload) {
             localStorage.setItem(STORAGE_KEY, newPayload);
