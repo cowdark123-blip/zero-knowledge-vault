@@ -864,6 +864,14 @@
     const userEmailText = document.getElementById("userEmailText");
     const logoutAuthBtn = document.getElementById("logoutAuthBtn");
 
+    // HELPER: SANITIZE SUPABASE URL
+    function sanitizeSupabaseUrl(rawUrl) {
+      if (!rawUrl) return "";
+      return rawUrl.trim()
+        .replace(/\/rest\/v1\/?$/, '')
+        .replace(/\/$/, '');
+    }
+
     // APP INIT
     function initApp() {
       const storedPayload = localStorage.getItem(STORAGE_KEY);
@@ -886,12 +894,13 @@
       if (savedCfg) {
         try {
           const cfg = JSON.parse(savedCfg);
-          supabaseUrlInput.value = cfg.url || "";
+          const cleanUrl = sanitizeSupabaseUrl(cfg.url);
+          supabaseUrlInput.value = cleanUrl;
           supabaseAnonKeyInput.value = cfg.key || "";
           syncUserIdInput.value = cfg.userId || "";
 
-          if (cfg.url && cfg.key && window.supabase) {
-            supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
+          if (cleanUrl && cfg.key && window.supabase) {
+            supabaseClient = window.supabase.createClient(cleanUrl, cfg.key);
             listenSupabaseAuth();
           }
         } catch(e) {}
@@ -1351,16 +1360,18 @@
 
     cloudSyncForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const url = supabaseUrlInput.value.trim();
+      const rawUrl = supabaseUrlInput.value;
       const key = supabaseAnonKeyInput.value.trim();
       const userId = syncUserIdInput.value.trim();
 
-      if (!url || !key) {
+      const cleanUrl = sanitizeSupabaseUrl(rawUrl);
+
+      if (!cleanUrl || !key) {
         showToast("Vui lòng điền đầy đủ URL và Anon Key!", "danger");
         return;
       }
 
-      localStorage.setItem("zk_cloud_config", JSON.stringify({ url, key, userId }));
+      localStorage.setItem("zk_cloud_config", JSON.stringify({ url: cleanUrl, key, userId }));
       initSupabase();
       showToast("Đã lưu cấu hình Supabase Cloud!", "success");
       cloudModal.classList.add("hidden");
@@ -1373,17 +1384,19 @@
         return;
       }
 
-      const url = supabaseUrlInput.value.trim();
+      const rawUrl = supabaseUrlInput.value;
       const key = supabaseAnonKeyInput.value.trim();
       const userId = syncUserIdInput.value.trim();
 
-      if (!url || !key || !userId) {
+      const cleanUrl = sanitizeSupabaseUrl(rawUrl);
+
+      if (!cleanUrl || !key || !userId) {
         showToast("Vui lòng nhập Sync ID hoặc Đăng nhập bằng Google/GitHub!", "danger");
         return;
       }
 
       try {
-        const res = await fetch(`${url}/rest/v1/vaults?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
+        const res = await fetch(`${cleanUrl}/rest/v1/vaults?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
           headers: {
             "apikey": key,
             "Authorization": `Bearer ${key}`
