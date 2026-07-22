@@ -1074,12 +1074,25 @@
     }
 
     logoutAuthBtn.addEventListener("click", async () => {
-      if (supabaseClient) {
-        await supabaseClient.auth.signOut();
+      if (confirm("Bạn có chắc chắn muốn đăng xuất tài khoản? Thao tác này sẽ xóa toàn bộ mật khẩu hiện tại khỏi thiết bị và đưa bạn về Màn hình Đăng nhập.")) {
+        if (supabaseClient) {
+          try {
+            await supabaseClient.auth.signOut();
+          } catch(e) {}
+        }
         currentUser = null;
         hasPulledCloud = false;
+
+        // Xóa sạch dữ liệu kho trong LocalStorage & RAM
+        localStorage.removeItem(STORAGE_KEY);
+        currentKey = null;
+        currentVaultData = [];
+        currentTrashData = [];
+        currentSaltBase64 = null;
+
         updateUserProfileUI();
-        showToast("Đã đăng xuất tài khoản OAuth!", "info");
+        lockVault(false);
+        showToast("Đã đăng xuất và xóa toàn bộ dữ liệu khỏi thiết bị!", "info");
       }
     });
 
