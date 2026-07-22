@@ -890,20 +890,38 @@
 
     // SUPABASE CLIENT INIT & AUTH LISTENERS
     function initSupabase() {
+      let url = "";
+      let key = "";
+
       const savedCfg = localStorage.getItem("zk_cloud_config");
       if (savedCfg) {
         try {
           const cfg = JSON.parse(savedCfg);
-          const cleanUrl = sanitizeSupabaseUrl(cfg.url);
-          supabaseUrlInput.value = cleanUrl;
-          supabaseAnonKeyInput.value = cfg.key || "";
+          url = sanitizeSupabaseUrl(cfg.url);
+          key = (cfg.key || "").trim();
           syncUserIdInput.value = cfg.userId || "";
-
-          if (cleanUrl && cfg.key && window.supabase) {
-            supabaseClient = window.supabase.createClient(cleanUrl, cfg.key);
-            listenSupabaseAuth();
-          }
         } catch(e) {}
+      }
+
+      // Also fallback to input fields if user typed in modal
+      if (!url && supabaseUrlInput.value) url = sanitizeSupabaseUrl(supabaseUrlInput.value);
+      if (!key && supabaseAnonKeyInput.value) key = supabaseAnonKeyInput.value.trim();
+
+      supabaseUrlInput.value = url;
+      supabaseAnonKeyInput.value = key;
+
+      if (url && key && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key, {
+            auth: {
+              persistSession: true,
+              detectSessionInUrl: true
+            }
+          });
+          listenSupabaseAuth();
+        } catch(e) {
+          console.warn("Supabase init failed:", e);
+        }
       }
     }
 
@@ -953,11 +971,25 @@
     githubLoginBtn.addEventListener("click", () => loginWithProvider("github"));
 
     async function loginWithProvider(provider) {
-      if (!supabaseClient) {
-        showToast("Vui lòng cấu hình Supabase URL & Anon Key trước!", "danger");
+      const url = sanitizeSupabaseUrl(supabaseUrlInput.value);
+      const key = supabaseAnonKeyInput.value.trim();
+
+      if (!supabaseClient && (!url || !key)) {
+        showToast("Vui lòng nhập Supabase Project URL & Anon Key trong Cấu Hình Cloud trước!", "danger");
         cloudModal.classList.remove("hidden");
         return;
       }
+
+      if (!supabaseClient && url && key) {
+        localStorage.setItem("zk_cloud_config", JSON.stringify({ url, key, userId: syncUserIdInput.value.trim() }));
+        initSupabase();
+      }
+
+      if (!supabaseClient) {
+        showToast("Supabase Client chưa được khởi tạo! Kiểm tra Anon Key.", "danger");
+        return;
+      }
+
       const redirectTo = window.location.origin + window.location.pathname;
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: provider,
@@ -1373,7 +1405,7 @@
 
       localStorage.setItem("zk_cloud_config", JSON.stringify({ url: cleanUrl, key, userId }));
       initSupabase();
-      showToast("Đã lưu cấu hình Supabase Cloud!", "success");
+      showToast("Đã lưu cấu hình Supabase Cloud & Khởi tạo Khóa API!", "success");
       cloudModal.classList.add("hidden");
     });
 
