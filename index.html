@@ -1122,6 +1122,22 @@
 
   <!-- CRYPTO ENGINE & SUPABASE SCRIPT -->
   <script>
+    // 4. Global Error Tracking & Diagnostics Logging
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      console.error("[ERROR TRACKER]", { message: msg, source: url, line: lineNo, col: columnNo, error: error });
+      if (typeof showToast === "function") {
+        showToast("⚠️ Sự cố ứng dụng: " + (msg || "Lỗi không xác định"), "danger");
+      }
+      return false;
+    };
+
+    window.onunhandledrejection = function(event) {
+      console.error("[UNHANDLED REJECTION TRACKER]", event.reason);
+      if (typeof showToast === "function") {
+        showToast("⚠️ Lỗi bất đồng bộ: " + (event.reason?.message || event.reason || "Lỗi kết nối/xử lý"), "danger");
+      }
+    };
+
     class CryptoService {
       static PBKDF2_ITERATIONS = 600000;
       static SALT_BYTE_LENGTH = 32;

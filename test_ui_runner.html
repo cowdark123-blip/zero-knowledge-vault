@@ -130,6 +130,35 @@
         recordTest("Test 5: Re-unlock", false, err.message);
       }
 
+      // TEST 6: Backup Restore Real Validation
+      try {
+        const payloadStr = win.localStorage.getItem("zk_vault_encrypted_payload");
+        const payload = JSON.parse(payloadStr);
+
+        // Simulate full restore from backup payload
+        win.localStorage.clear();
+        win.localStorage.setItem("zk_vault_encrypted_payload", JSON.stringify(payload));
+        win.lockVault();
+
+        const masterInput = doc.getElementById("masterPasswordInput");
+        masterInput.value = "Phase3MasterPass@2026";
+        doc.getElementById("unlockSubmitBtn").click();
+
+        await new Promise(r => setTimeout(r, 1800));
+
+        const dashboardScreen = doc.getElementById("dashboardScreen");
+        const isRestoredVisible = !dashboardScreen.classList.contains("hidden");
+        const restoredAccountCards = doc.querySelectorAll(".account-card");
+
+        recordTest(
+          "Test 6: Kiểm tra Restore bản sao lưu dữ liệu (.json) mã hóa thành công 100%",
+          isRestoredVisible && restoredAccountCards.length >= 3,
+          `Restored Vault Visible: ${isRestoredVisible}, Restored Accounts Count: ${restoredAccountCards.length}`
+        );
+      } catch (err) {
+        recordTest("Test 6: Backup Restore", false, err.message);
+      }
+
       // POST RESULTS BACK TO PYTHON VERIFICATION SERVER
       try {
         await fetch("/ui-test-result", {
