@@ -477,6 +477,42 @@
       gap: 8px;
     }
 
+    .btn-action-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-main);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .btn-action-item:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--color-border-hover);
+    }
+
+    .btn-action-danger {
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.25);
+      background: rgba(248, 113, 113, 0.08);
+    }
+
+    .btn-action-danger:hover {
+      background: rgba(248, 113, 113, 0.25);
+      color: #fff;
+    }
+
+    .action-label {
+      display: none; /* Hide text label on desktop for compact view */
+    }
+
     /* Modal Styling */
     .modal-overlay {
       position: fixed;
@@ -695,18 +731,14 @@
         font-size: 1.05rem;
       }
 
-      #headerActions {
-        display: grid !important;
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-        gap: 6px;
-        width: 100%;
+      /* Hide duplicate header actions on mobile when mobile dock is active */
+      body.is-mobile-device #headerActions {
+        display: none !important;
       }
 
-      #headerActions .btn {
-        padding: 8px 10px;
-        font-size: 0.78rem;
-        justify-content: center;
-        width: 100%;
+      /* Hide duplicate dashboard top action buttons on mobile when mobile dock is active */
+      body.is-mobile-device .dashboard-top-actions {
+        display: none !important;
       }
 
       .card {
@@ -747,7 +779,7 @@
       }
 
       .account-card {
-        padding: 14px;
+        padding: 16px 14px;
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
@@ -755,32 +787,37 @@
 
       .account-info {
         gap: 12px;
+        width: 100%;
       }
 
-      .service-avatar {
-        width: 38px;
-        height: 38px;
-        font-size: 1rem;
+      .account-details {
+        flex: 1;
+        min-width: 0;
       }
 
+      /* Mobile Account Actions: Positioned directly BELOW service name, username, and password */
       .account-actions {
-        justify-content: flex-end;
-        border-top: 1px dashed rgba(255, 255, 255, 0.08);
-        padding-top: 10px;
-        gap: 12px;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin-top: 10px !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1) !important;
+        padding-top: 12px !important;
       }
 
-      .account-actions .btn-icon {
-        padding: 8px 12px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-sm);
-        font-size: 1.1rem;
-        min-width: 44px;
-        min-height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+      .btn-action-item {
+        width: 100% !important;
+        padding: 10px 4px !important;
+        justify-content: center !important;
+        min-height: 44px !important;
+        border-radius: var(--radius-sm) !important;
+        font-size: 0.82rem !important;
+        font-weight: 500 !important;
+      }
+
+      .action-label {
+        display: inline !important; /* Show 'Xem', 'Sao chép', 'Thùng rác' text labels on mobile */
       }
 
       /* Mobile Bottom Sheet Modals */
@@ -955,7 +992,7 @@
           </button>
         </div>
 
-        <div style="display: flex; gap: 10px;">
+        <div class="dashboard-top-actions" style="display: flex; gap: 10px;">
           <button id="generatorBtn" class="btn btn-secondary">
             🎲 Tạo Mật Khẩu
           </button>
@@ -1832,9 +1869,15 @@
             </div>
           </div>
           <div class="account-actions">
-            <button class="btn-icon" title="Ẩn/Hiện Mật Khẩu" onclick="togglePassVisibility('${item.id}', '${escapeJs(item.password)}')">👁️</button>
-            <button class="btn-icon" title="Sao Chép Mật Khẩu" onclick="copyToClipboard('${escapeJs(item.password)}')">📋</button>
-            <button class="btn-icon" title="Bỏ vào Thùng Rác" onclick="moveToTrash('${item.id}')" style="color: var(--color-danger);">🗑️</button>
+            <button class="btn-action-item" title="Ẩn/Hiện Mật Khẩu" onclick="togglePassVisibility('${item.id}', '${escapeJs(item.password)}')">
+              <span>👁️</span> <span class="action-label">Xem</span>
+            </button>
+            <button class="btn-action-item" title="Sao Chép Mật Khẩu" onclick="copyToClipboard('${escapeJs(item.password)}')">
+              <span>📋</span> <span class="action-label">Sao chép</span>
+            </button>
+            <button class="btn-action-item btn-action-danger" title="Bỏ vào Thùng Rác" onclick="moveToTrash('${item.id}')">
+              <span>🗑️</span> <span class="action-label">Thùng rác</span>
+            </button>
           </div>
         `;
         vaultGrid.appendChild(card);
