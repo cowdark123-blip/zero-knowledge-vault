@@ -959,9 +959,6 @@
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
           256-bit AES-GCM
         </span>
-        <span id="deviceIndicator" class="device-badge" title="Tự động nhận diện thiết bị">
-          💻 Desktop UI
-        </span>
       </div>
 
       <div style="display: flex; gap: 8px; align-items: center;">
@@ -1430,19 +1427,11 @@
         document.documentElement.classList.remove("is-desktop-device");
         document.body.classList.add("is-mobile-device");
         document.body.classList.remove("is-desktop-device");
-        if (deviceIndicator) {
-          deviceIndicator.innerHTML = `📱 Mobile UI`;
-          deviceIndicator.title = "Đã tự động nhận diện & tối ưu cho Điện thoại";
-        }
       } else {
         document.documentElement.classList.add("is-desktop-device");
         document.documentElement.classList.remove("is-mobile-device");
         document.body.classList.add("is-desktop-device");
         document.body.classList.remove("is-mobile-device");
-        if (deviceIndicator) {
-          deviceIndicator.innerHTML = `💻 Desktop UI`;
-          deviceIndicator.title = "Giao diện tối ưu cho Máy tính / Màn hình rộng";
-        }
       }
 
       updateMobileNavVisibility();
