@@ -585,6 +585,262 @@
     .divider-text:not(:empty)::after {
       margin-left: .75em;
     }
+
+    /* Device Detection Badge */
+    .device-badge {
+      font-size: 0.72rem;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--color-primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      transition: all 0.3s ease;
+    }
+
+    .is-mobile-device .device-badge {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    /* Mobile Bottom Navigation Dock */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(10, 15, 26, 0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid var(--color-border);
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px;
+      z-index: 950;
+      box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5);
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .mobile-nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 0.7rem;
+      font-weight: 500;
+      gap: 3px;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      min-width: 56px;
+      transition: all 0.2s ease;
+    }
+
+    .mobile-nav-btn span.icon {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .mobile-nav-btn:active, .mobile-nav-btn.active {
+      color: var(--color-primary);
+      transform: scale(0.95);
+    }
+
+    .mobile-nav-btn.btn-main-add {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      color: #060911;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      margin-top: -20px;
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4);
+      font-weight: 700;
+    }
+
+    /* Mobile Responsive Media Queries */
+    @media (max-width: 768px) {
+      body {
+        padding: 12px 10px 90px 10px;
+      }
+
+      body.is-mobile-device {
+        padding-bottom: 96px;
+      }
+
+      header {
+        padding: 12px 16px;
+        margin-bottom: 18px;
+        border-radius: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .logo-title {
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .logo-title h1 {
+        font-size: 1.05rem;
+      }
+
+      #headerActions {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 6px;
+        width: 100%;
+      }
+
+      #headerActions .btn {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+        justify-content: center;
+        width: 100%;
+      }
+
+      .card {
+        padding: 20px 16px;
+        border-radius: 14px;
+        margin-bottom: 16px;
+      }
+
+      .unlock-card {
+        padding: 24px 16px;
+      }
+
+      .dashboard-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .search-box {
+        min-width: 100%;
+        width: 100%;
+      }
+
+      .sort-controls {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+
+      select.select-sort {
+        flex: 1;
+        width: 100%;
+      }
+
+      #sortOrderBtn {
+        white-space: nowrap;
+      }
+
+      .account-card {
+        padding: 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .account-info {
+        gap: 12px;
+      }
+
+      .service-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+      }
+
+      .account-actions {
+        justify-content: flex-end;
+        border-top: 1px dashed rgba(255, 255, 255, 0.08);
+        padding-top: 10px;
+        gap: 12px;
+      }
+
+      .account-actions .btn-icon {
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        font-size: 1.1rem;
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Mobile Bottom Sheet Modals */
+      .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+
+      .modal-content {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 88vh;
+        padding: 22px 18px 28px 18px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+        animation: slideUpMobile 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        border-bottom: none;
+        position: relative;
+      }
+
+      .modal-content::before {
+        content: '';
+        width: 36px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      @keyframes slideUpMobile {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+
+      /* Display Mobile Bottom Nav when unlocked */
+      body.is-mobile-device .mobile-bottom-nav:not(.hidden) {
+        display: flex !important;
+      }
+
+      /* Mobile Toast */
+      .toast {
+        left: 12px;
+        right: 12px;
+        bottom: 80px;
+        justify-content: center;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      select.select-sort {
+        font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+      }
+    }
   </style>
 </head>
 <body>
@@ -602,6 +858,9 @@
         <span class="badge-zk">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
           256-bit AES-GCM
+        </span>
+        <span id="deviceIndicator" class="device-badge" title="Tự động nhận diện thiết bị">
+          💻 Desktop UI
         </span>
       </div>
 
@@ -835,6 +1094,29 @@
     </div>
   </div>
 
+  <!-- MOBILE BOTTOM NAVIGATION BAR (App Dock for Phones) -->
+  <nav id="mobileBottomNav" class="mobile-bottom-nav hidden" aria-label="Thanh điều hướng Mobile">
+    <button id="mobileNavChangePass" class="mobile-nav-btn" title="Đổi Master Password">
+      <span class="icon">🔑</span>
+      <span>Đổi MK</span>
+    </button>
+    <button id="mobileNavTrash" class="mobile-nav-btn" title="Thùng Rác">
+      <span class="icon">🗑️</span>
+      <span>Thùng Rác</span>
+    </button>
+    <button id="mobileNavAdd" class="mobile-nav-btn btn-main-add" title="Thêm tài khoản mới">
+      <span class="icon">➕</span>
+    </button>
+    <button id="mobileNavGen" class="mobile-nav-btn" title="Tạo Mật Khẩu">
+      <span class="icon">🎲</span>
+      <span>Tạo MK</span>
+    </button>
+    <button id="mobileNavLock" class="mobile-nav-btn" title="Khóa Kho">
+      <span class="icon">🔒</span>
+      <span>Khóa</span>
+    </button>
+  </nav>
+
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer"></div>
 
@@ -1016,6 +1298,62 @@
     const userAvatar = document.getElementById("userAvatar");
     const userEmailText = document.getElementById("userEmailText");
     const logoutAuthBtn = document.getElementById("logoutAuthBtn");
+
+    // DEVICE DETECTION & MOBILE DOCK DOM
+    const deviceIndicator = document.getElementById("deviceIndicator");
+    const mobileBottomNav = document.getElementById("mobileBottomNav");
+    let isMobileDevice = false;
+
+    function detectDeviceType() {
+      const userAgentMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const narrowScreen = window.innerWidth <= 768;
+      isMobileDevice = userAgentMobile || narrowScreen;
+
+      if (isMobileDevice) {
+        document.documentElement.classList.add("is-mobile-device");
+        document.documentElement.classList.remove("is-desktop-device");
+        document.body.classList.add("is-mobile-device");
+        document.body.classList.remove("is-desktop-device");
+        if (deviceIndicator) {
+          deviceIndicator.innerHTML = `📱 Mobile UI`;
+          deviceIndicator.title = "Đã tự động nhận diện & tối ưu cho Điện thoại";
+        }
+      } else {
+        document.documentElement.classList.add("is-desktop-device");
+        document.documentElement.classList.remove("is-mobile-device");
+        document.body.classList.add("is-desktop-device");
+        document.body.classList.remove("is-mobile-device");
+        if (deviceIndicator) {
+          deviceIndicator.innerHTML = `💻 Desktop UI`;
+          deviceIndicator.title = "Giao diện tối ưu cho Máy tính / Màn hình rộng";
+        }
+      }
+
+      updateMobileNavVisibility();
+    }
+
+    function updateMobileNavVisibility() {
+      if (!mobileBottomNav) return;
+      const isUnlocked = dashboardScreen && !dashboardScreen.classList.contains("hidden");
+      if (isMobileDevice && isUnlocked) {
+        mobileBottomNav.classList.remove("hidden");
+      } else {
+        mobileBottomNav.classList.add("hidden");
+      }
+    }
+
+    window.addEventListener("resize", detectDeviceType);
+    window.addEventListener("orientationchange", detectDeviceType);
+    detectDeviceType();
+
+    // MOBILE BOTTOM NAV CLICK LISTENERS
+    if (document.getElementById("mobileNavChangePass")) {
+      document.getElementById("mobileNavChangePass").addEventListener("click", () => changePassBtn.click());
+      document.getElementById("mobileNavTrash").addEventListener("click", () => trashBtn.click());
+      document.getElementById("mobileNavAdd").addEventListener("click", () => addAccountBtn.click());
+      document.getElementById("mobileNavGen").addEventListener("click", () => generatorBtn.click());
+      document.getElementById("mobileNavLock").addEventListener("click", () => lockBtn.click());
+    }
 
 
 
@@ -1298,6 +1636,7 @@
         updateTrashBadge();
         renderVaultGrid();
         resetAutoLockTimer();
+        updateMobileNavVisibility();
       } catch (err) {
         unlockError.textContent = err.message || "Master Password không chính xác!";
         unlockError.style.display = "block";
@@ -1349,6 +1688,7 @@
       headerActions.classList.add("hidden");
       unlockScreen.classList.remove("hidden");
       initAppUI();
+      updateMobileNavVisibility();
 
       if (dueToInactivity) {
         showToast("Đã tự động khóa kho do không hoạt động trong 5 phút!", "danger");
